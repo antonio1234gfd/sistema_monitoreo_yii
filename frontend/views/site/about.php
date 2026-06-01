@@ -1,246 +1,122 @@
 <?php
-
 /** @var \yii\web\View $this */
-
 use yii\bootstrap5\Html;
 
 $this->title = 'Acerca de';
-$this->params['breadcrumbs'][] = $this->title;
 ?>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap');
 
-.about-wrap {
-    max-width: 860px;
-    margin: 2.5rem auto;
-    font-family: 'Rajdhani', sans-serif;
+:root {
+    --cream:  #f5f0e8;
+    --ink:    #1a1714;
+    --rust:   #c94f2a;
+    --mid:    #7a6f62;
+    --line:   #c8bfaf;
+    --warm:   #e8dcc8;
 }
 
-.about-header {
-    border-left: 4px solid #0077b6;
-    padding-left: 1.2rem;
-    margin-bottom: 2rem;
-}
+.ed-wrap { background: var(--cream); padding: 3rem 4rem; font-family: 'Outfit', sans-serif; color: var(--ink); min-height: 100vh; }
+.ed-inner { max-width: 1100px; margin: 0 auto; }
 
-.about-header h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: #0077b6;
-    margin-bottom: 0.2rem;
-}
+/* Tipografía y Estructura */
+.ed-topbar { display: flex; align-items: center; justify-content: space-between; border-top: 3px solid var(--ink); border-bottom: 2px solid var(--line); padding: 1rem 0; margin-bottom: 3rem; }
+.ed-topbar-tag { font-family: 'DM Mono', monospace; font-size: 1.1rem; letter-spacing: .1em; color: var(--mid); text-transform: uppercase; }
+.ed-topbar-vol { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--rust); }
 
-.about-header .sub {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.75rem;
-    color: #6c757d;
-    letter-spacing: 2px;
-}
+.ed-big-title { font-family: 'DM Serif Display', serif; font-size: 6rem; line-height: 1; color: var(--ink); margin: 0; }
+.ed-big-title em { font-style: italic; color: var(--rust); }
 
-.about-card {
-    border: 1px solid #dee2e6;
-    border-left: 4px solid #0077b6;
-    border-radius: 0;
-    padding: 1.5rem 1.8rem;
-    margin-bottom: 1.4rem;
-    background: #f8f9fa;
-}
+.ed-desc-label { font-family: 'DM Mono', monospace; font-size: 1rem; letter-spacing: .2em; color: var(--rust); margin-bottom: 1rem; }
+.ed-desc-body { font-size: 1.6rem; line-height: 1.6; color: #3a3530; border-left: 4px solid var(--rust); padding-left: 1.5rem; }
 
-.about-card h4 {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 3px;
-    color: #0077b6;
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-}
+.ed-sec-num { font-family: 'DM Serif Display', serif; font-size: 4rem; color: var(--line); margin-right: 1.5rem; }
+.ed-sec-label { font-family: 'DM Mono', monospace; font-size: 1.2rem; letter-spacing: .2em; text-transform: uppercase; color: var(--mid); }
 
-.about-card p,
-.about-card li {
-    font-size: 1.05rem;
-    color: #343a40;
-    line-height: 1.6;
-}
+/* Sensores y LEDs */
+.ed-sensor-id { font-family: 'DM Serif Display', serif; font-size: 3rem; color: var(--ink); }
+.ed-sensor-desc { font-size: 1.4rem; color: var(--mid); margin-top: 0.5rem; }
+.ed-sensors-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+.ed-sensor-box { border: 2px solid var(--line); padding: 2rem; background: #fff; }
 
-.about-card ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
+.ed-led-row { display: flex; align-items: center; gap: 1.5rem; padding: 1.2rem; background: #fff; border: 1px solid var(--line); margin-bottom: 0.8rem; }
+.ed-led-circle { width: 25px; height: 25px; border-radius: 50%; }
+.ed-led-g { background: #2db77b; }
+.ed-led-y { background: #e8a825; }
+.ed-led-r { background: #d94040; }
+.ed-led-name { font-size: 1.4rem; font-weight: 600; width: 120px; }
+.ed-led-ppm { font-size: 1.3rem; color: var(--mid); }
 
-.about-card ul li::before {
-    content: '▸ ';
-    color: #0077b6;
-    font-weight: bold;
-}
+.ed-feat-list li { font-size: 1.5rem; padding: 1.2rem 0; border-bottom: 1px solid var(--warm); }
+.ed-tech-name { font-size: 1.4rem; }
+.ed-tech-tag { font-size: 1rem; padding: 0.3rem 0.8rem; }
+.ed-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 3rem; }
+.ed-div-thick { height: 4px; background: var(--ink); margin: 3rem 0; }
 
-/* Badges de sensores */
-.sensor-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-.sensor-item {
-    background: #fff;
-    border: 1px solid #dee2e6;
-    padding: 1rem 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.sensor-icon {
-    font-size: 1.8rem;
-    line-height: 1;
-}
-
-.sensor-name {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: #0077b6;
-}
-
-.sensor-desc {
-    font-size: 0.9rem;
-    color: #6c757d;
-    margin-top: 2px;
-}
-
-/* LED indicators */
-.led-grid {
-    display: flex;
-    gap: 1.2rem;
-    flex-wrap: wrap;
-}
-
-.led-item {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 1rem;
-    color: #343a40;
-}
-
-.led-dot {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.led-verde   { background: #00e676; box-shadow: 0 0 6px #00e67688; }
-.led-amarillo{ background: #ffea00; box-shadow: 0 0 6px #ffea0088; }
-.led-rojo    { background: #ff1744; box-shadow: 0 0 6px #ff174488; }
-
-/* Footer firma */
-.about-firma {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 2px;
-    color: #6c757d;
-    text-align: center;
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid #dee2e6;
-}
-
-@media (max-width: 576px) {
-    .sensor-grid { grid-template-columns: 1fr; }
-    .led-grid    { flex-direction: column; }
-}
+/* Footer */
+.ed-footer { margin-top: 5rem; padding-top: 2rem; border-top: 3px solid var(--ink); display: flex; justify-content: space-between; align-items: center; }
+.ed-footer-name { font-family: 'DM Serif Display', serif; font-size: 2.2rem; color: var(--ink); }
+.ed-footer-meta { font-family: 'DM Mono', monospace; font-size: 1.1rem; letter-spacing: .1em; color: var(--mid); }
 </style>
 
-<div class="about-wrap">
+<div class="ed-wrap">
+    <div class="ed-inner">
+        <div class="ed-topbar">
+            <span class="ed-topbar-tag">Sistema de monitoreo de calidad del aire</span>
+            <span class="ed-topbar-vol">Vol. I</span>
+        </div>
 
-    <!-- Header -->
-    <div class="about-header">
-        <h1>Acerca del Sistema</h1>
-        <div class="sub">// SISTEMA DE MONITOREO DE CALIDAD DEL AIRE — YII2 ADVANCED</div>
-    </div>
-
-    <!-- Descripción general -->
-    <div class="about-card">
-        <h4>// descripción</h4>
-        <p>
-            Aplicación web desarrollada con <strong>Yii2 Advanced</strong> que integra la gestión
-            de usuarios con el monitoreo en tiempo real de la calidad del aire mediante
-            dispositivos <strong>ESP32</strong>. Permite visualizar lecturas de sensores,
-            recibir alertas automáticas y conocer el estado del sistema en todo momento.
-        </p>
-    </div>
-
-    <!-- Sensores -->
-    <div class="about-card">
-        <h4>// sensores utilizados</h4>
-        <div class="sensor-grid">
-            <div class="sensor-item">
-                <div class="sensor-icon">&#127788;</div>
-                <div>
-                    <div class="sensor-name">MQ-135</div>
-                    <div class="sensor-desc">Calidad del aire — CO₂ y gases (ppm)</div>
-                </div>
+        <div class="ed-hero-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+            <div><h1 class="ed-big-title">Acerca<br>del <em>Sistema</em></h1></div>
+            <div>
+                <div class="ed-desc-label">Descripción</div>
+                <p class="ed-desc-body">Aplicación web desarrollada con <strong>Yii2 Advanced</strong> que integra la gestión de usuarios con el monitoreo en tiempo real de la calidad del aire mediante dispositivos <strong>ESP32</strong>.</p>
             </div>
-            <div class="sensor-item">
-                <div class="sensor-icon">&#127777;</div>
-                <div>
-                    <div class="sensor-name">DHT-22</div>
-                    <div class="sensor-desc">Temperatura (°C) y Humedad relativa (%)</div>
+        </div>
+
+        <div class="ed-div-thick"></div>
+
+        <div class="ed-sec-head" style="display: flex; align-items: baseline; margin-bottom: 2rem;">
+            <span class="ed-sec-num">01</span><span class="ed-sec-label">Sensores utilizados</span>
+        </div>
+        <div class="ed-sensors-grid">
+            <div class="ed-sensor-box"><div class="ed-sensor-id">MQ-135</div><div class="ed-sensor-desc">Calidad del aire: CO₂ y gases (ppm)</div></div>
+            <div class="ed-sensor-box"><div class="ed-sensor-id">DHT-22</div><div class="ed-sensor-desc">Temperatura (°C) y Humedad relativa (%)</div></div>
+        </div>
+
+        <div class="ed-sec-head" style="display: flex; align-items: baseline; margin-top: 3rem; margin-bottom: 2rem;">
+            <span class="ed-sec-num">02</span><span class="ed-sec-label">Indicadores LED</span>
+        </div>
+        <div class="ed-led-section">
+            <div class="ed-led-row"><div class="ed-led-circle ed-led-g"></div><span class="ed-led-name">Verde</span><span class="ed-led-ppm">&lt; 700 ppm &mdash; Aire limpio</span></div>
+            <div class="ed-led-row"><div class="ed-led-circle ed-led-y"></div><span class="ed-led-name">Amarillo</span><span class="ed-led-ppm">700-999 ppm &mdash; Aire viciado</span></div>
+            <div class="ed-led-row"><div class="ed-led-circle ed-led-r"></div><span class="ed-led-name">Rojo</span><span class="ed-led-ppm">1000+ ppm &mdash; Crítico + Buzzer</span></div>
+        </div>
+
+        <div class="ed-two-col">
+            <div>
+                <div class="ed-sec-head" style="display: flex; align-items: baseline;"><span class="ed-sec-num">03</span><span class="ed-sec-label">Características</span></div>
+                <ul class="ed-feat-list" style="list-style: none; padding: 0;">
+                    <li>Control de acceso: User, Admin, SuperUsuario</li>
+                    <li>Dashboard con lecturas en tiempo real</li>
+                    <li>Alertas automáticas vía base de datos</li>
+                    <li>Buzzer para niveles críticos</li>
+                </ul>
+            </div>
+            <div>
+                <div class="ed-sec-head" style="display: flex; align-items: baseline;"><span class="ed-sec-num">04</span><span class="ed-sec-label">Tecnologías</span></div>
+                <div class="ed-tech-col" style="margin-top: 1rem;">
+                    <div class="ed-tech-row" style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid #ccc;"><span class="ed-tech-name">PHP 8 / Yii2 Advanced</span><span class="ed-tech-tag">BACKEND</span></div>
+                    <div class="ed-tech-row" style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid #ccc;"><span class="ed-tech-name">MySQL 8 / Triggers</span><span class="ed-tech-tag">DATABASE</span></div>
+                    <div class="ed-tech-row" style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid #ccc;"><span class="ed-tech-name">ESP32 Hardware</span><span class="ed-tech-tag">IOT</span></div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Indicador LED -->
-    <div class="about-card">
-        <h4>// indicador LED de calidad</h4>
-        <div class="led-grid">
-            <div class="led-item">
-                <div class="led-dot led-verde"></div>
-                <span><strong>Verde</strong> — Aire limpio (menor a 700 ppm)</span>
-            </div>
-            <div class="led-item">
-                <div class="led-dot led-amarillo"></div>
-                <span><strong>Amarillo</strong> — Aire viciado (700 – 999 ppm)</span>
-            </div>
-            <div class="led-item">
-                <div class="led-dot led-rojo"></div>
-                <span><strong>Rojo</strong> — Contaminación crítica (1000+ ppm) + Buzzer</span>
-            </div>
+        <div class="ed-footer">
+            <span class="ed-footer-name">José Adrián Noh Chuc</span>
+            <span class="ed-footer-meta">DESARROLLADO &mdash; 2026</span>
         </div>
     </div>
-
-    <!-- Características -->
-    <div class="about-card">
-        <h4>// características del sistema</h4>
-        <ul>
-            <li>Control de acceso por roles: User, Admin y SuperUsuario</li>
-            <li>Dashboard de monitoreo con lectura de sensores en tiempo real</li>
-            <li>Alertas automáticas generadas por trigger en la base de datos</li>
-            <li>Buzzer activado automáticamente en niveles críticos de contaminación</li>
-            <li>Historial de lecturas y alertas almacenado en MySQL</li>
-            <li>Panel de administración para gestión de usuarios, roles y dispositivos</li>
-        </ul>
-    </div>
-
-    <!-- Tecnologías -->
-    <div class="about-card">
-        <h4>// tecnologías utilizadas</h4>
-        <ul>
-            <li>Backend & Frontend: PHP 8 + Yii2 Advanced Framework</li>
-            <li>Base de datos: MySQL 8 con triggers y stored procedures</li>
-            <li>Hardware: ESP32 con sensores MQ135 y DHT22</li>
-            <li>Gráficas: Chart.js</li>
-            <li>UI: Bootstrap 5</li>
-        </ul>
-    </div>
-
-    <!-- Firma -->
-    <div class="about-firma">
-        DESARROLLADO POR: ING. ANGEL MANRIQUE CASANOVA &nbsp;|&nbsp; 2026
-    </div>
-
 </div>
