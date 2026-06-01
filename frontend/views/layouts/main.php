@@ -29,7 +29,7 @@ AppAsset::register($this);
     <?php
     NavBar::begin([
         // Nombre de la marca según el libro
-        'brandLabel' => 'Yii 2 Build', 
+        'brandLabel' => 'AirGuard IoT', 
         'brandUrl' => Yii::$app->homeUrl,
         'options' => [
             // Clases de estilo según el libro

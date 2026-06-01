@@ -6,34 +6,38 @@ $this->title = 'Sistema de Monitoreo Atmosférico';
 ?>
 
 <style>
-.hero-section{
-    min-height:75vh;
+body{
+    background:#0f172a;
+}
+
+.hero{
+    min-height:80vh;
     display:flex;
     align-items:center;
     justify-content:center;
+    text-align:center;
+    color:white;
     background:
-        linear-gradient(rgba(15,23,42,.85),rgba(15,23,42,.85)),
-        url('https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2000');
+        linear-gradient(rgba(0,0,0,.75), rgba(0,0,0,.75)),
+        url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2000');
     background-size:cover;
     background-position:center;
-    color:white;
-    border-radius:15px;
+    border-radius:20px;
     margin-top:20px;
 }
 
 .hero-content{
-    text-align:center;
     max-width:900px;
     padding:40px;
 }
 
-.hero-title{
-    font-size:3.5rem;
+.hero h1{
+    font-size:4rem;
     font-weight:700;
     margin-bottom:20px;
 }
 
-.hero-subtitle{
+.hero p{
     font-size:1.3rem;
     color:#cbd5e1;
     margin-bottom:35px;
@@ -42,12 +46,12 @@ $this->title = 'Sistema de Monitoreo Atmosférico';
 .btn-monitor{
     background:#0ea5e9;
     color:white;
-    padding:15px 35px;
+    padding:15px 40px;
     border-radius:10px;
     text-decoration:none;
     font-size:1.1rem;
-    font-weight:600;
-    transition:.3s;
+    font-weight:bold;
+    transition:0.3s;
 }
 
 .btn-monitor:hover{
@@ -57,17 +61,17 @@ $this->title = 'Sistema de Monitoreo Atmosférico';
 }
 
 .features{
-    margin-top:50px;
+    margin-top:60px;
 }
 
 .feature-card{
     background:white;
-    border-radius:15px;
+    border-radius:20px;
     padding:30px;
     text-align:center;
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
+    box-shadow:0 10px 30px rgba(0,0,0,.1);
+    transition:0.3s;
     height:100%;
-    transition:.3s;
 }
 
 .feature-card:hover{
@@ -75,13 +79,13 @@ $this->title = 'Sistema de Monitoreo Atmosférico';
 }
 
 .feature-icon{
-    font-size:3rem;
+    font-size:4rem;
     margin-bottom:15px;
 }
 
 .feature-title{
-    font-size:1.3rem;
-    font-weight:600;
+    font-size:1.4rem;
+    font-weight:bold;
     margin-bottom:10px;
 }
 
@@ -89,16 +93,29 @@ $this->title = 'Sistema de Monitoreo Atmosférico';
     color:#64748b;
 }
 
+.section-title{
+    text-align:center;
+    margin-bottom:40px;
+    font-size:2rem;
+    font-weight:bold;
+    color:#ffffff;
+}
+
 .stats{
-    margin-top:50px;
+    margin-top:60px;
 }
 
 .stat-card{
-    background:#0f172a;
+    background:#1e293b;
     color:white;
+    border-radius:20px;
     padding:25px;
-    border-radius:15px;
     text-align:center;
+    transition:0.3s;
+}
+
+.stat-card:hover{
+    transform:translateY(-5px);
 }
 
 .stat-number{
@@ -110,22 +127,28 @@ $this->title = 'Sistema de Monitoreo Atmosférico';
 .stat-label{
     color:#cbd5e1;
 }
+
+.footer-info{
+    margin-top:60px;
+    text-align:center;
+    color:#94a3b8;
+    padding-bottom:30px;
+}
 </style>
 
-<div class="hero-section">
+<div class="hero">
     <div class="hero-content">
 
-        <h1 class="hero-title">
-            Sistema Inteligente de Monitoreo Atmosférico
-        </h1>
+        <h1>🌫️ AirGuard IoT</h1>
 
-        <p class="hero-subtitle">
-            Plataforma desarrollada con ESP32 para monitorear temperatura,
-            humedad y calidad del aire en tiempo real.
+        <p>
+            Sistema Inteligente de Monitoreo Atmosférico basado en ESP32
+            para la detección de contaminantes y gases inflamables mediante
+            sensores MQ135 y MQ5.
         </p>
 
         <?= Html::a(
-            'Ir al Monitor',
+            'Acceder al Monitor',
             ['/dashboard/index'],
             ['class' => 'btn-monitor']
         ) ?>
@@ -133,37 +156,68 @@ $this->title = 'Sistema de Monitoreo Atmosférico';
     </div>
 </div>
 
-<div class="container features">
+<div class="container">
 
-    <div class="row">
+    <h2 class="section-title">
+        Tecnologías del Proyecto
+    </h2>
+
+    <div class="row features">
 
         <div class="col-md-4 mb-4">
             <div class="feature-card">
-                <div class="feature-icon">🌡️</div>
-                <div class="feature-title">Temperatura</div>
-                <div class="feature-text">
-                    Monitoreo preciso mediante sensor DHT22.
+
+                <div class="feature-icon">
+                    🌫️
                 </div>
+
+                <div class="feature-title">
+                    Sensor MQ135
+                </div>
+
+                <div class="feature-text">
+                    Monitoreo de calidad del aire y presencia de gases
+                    contaminantes en el ambiente.
+                </div>
+
             </div>
         </div>
 
         <div class="col-md-4 mb-4">
             <div class="feature-card">
-                <div class="feature-icon">💧</div>
-                <div class="feature-title">Humedad</div>
-                <div class="feature-text">
-                    Visualización de humedad relativa en tiempo real.
+
+                <div class="feature-icon">
+                    🔥
                 </div>
+
+                <div class="feature-title">
+                    Sensor MQ5
+                </div>
+
+                <div class="feature-text">
+                    Detección de gases inflamables como GLP, butano,
+                    metano y humo.
+                </div>
+
             </div>
         </div>
 
         <div class="col-md-4 mb-4">
             <div class="feature-card">
-                <div class="feature-icon">🌫️</div>
-                <div class="feature-title">Calidad del Aire</div>
-                <div class="feature-text">
-                    Detección de contaminantes mediante MQ135.
+
+                <div class="feature-icon">
+                    🚨
                 </div>
+
+                <div class="feature-title">
+                    Sistema de Alertas
+                </div>
+
+                <div class="feature-text">
+                    Activación automática de LED RGB y buzzer cuando
+                    se detectan condiciones peligrosas.
+                </div>
+
             </div>
         </div>
 
@@ -171,27 +225,37 @@ $this->title = 'Sistema de Monitoreo Atmosférico';
 
     <div class="row stats">
 
-        <div class="col-md-4 mb-3">
+        <div class="col-md-4 mb-4">
             <div class="stat-card">
-                <div class="stat-number">24/7</div>
-                <div class="stat-label">Monitoreo Continuo</div>
+                <div class="stat-number">MQ135</div>
+                <div class="stat-label">
+                    Calidad del Aire
+                </div>
             </div>
         </div>
 
-        <div class="col-md-4 mb-3">
+        <div class="col-md-4 mb-4">
+            <div class="stat-card">
+                <div class="stat-number">MQ5</div>
+                <div class="stat-label">
+                    Detección de Gases
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
             <div class="stat-card">
                 <div class="stat-number">ESP32</div>
-                <div class="stat-label">Procesamiento IoT</div>
+                <div class="stat-label">
+                    Monitoreo en Tiempo Real
+                </div>
             </div>
         </div>
 
-        <div class="col-md-4 mb-3">
-            <div class="stat-card">
-                <div class="stat-number">Tiempo Real</div>
-                <div class="stat-label">Actualización Instantánea</div>
-            </div>
-        </div>
+    </div>
 
+    <div class="footer-info">
+        Proyecto de Monitoreo Atmosférico • Yii2 • ESP32 • IoT
     </div>
 
 </div>
