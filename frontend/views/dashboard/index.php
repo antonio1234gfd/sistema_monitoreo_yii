@@ -305,24 +305,14 @@ $jsonGrafica = json_encode($graficaDatos);
         <?php endif; ?>
       </div>
 
-      <!-- Temperatura -->
+      <!-- MQ5 -->
       <div class="card">
-        <div class="card-label">// temperatura</div>
+        <div class="card-label">// gas combustible</div>
         <div class="card-value">
-          <?= $ultimaLectura ? number_format($ultimaLectura->dht22_temperatura, 1) : '---' ?>
-          <span class="card-unit">°C</span>
+          <?= $ultimaLectura ? number_format($ultimaLectura->mq5_valor, 0) : '---' ?>
+          <span class="card-unit">ppm</span>
         </div>
-        <div class="card-ts">Sensor DHT22</div>
-      </div>
-
-      <!-- Humedad -->
-      <div class="card">
-        <div class="card-label">// humedad relativa</div>
-        <div class="card-value">
-          <?= $ultimaLectura ? number_format($ultimaLectura->dht22_humedad, 1) : '---' ?>
-          <span class="card-unit">%</span>
-        </div>
-        <div class="card-ts">Sensor DHT22</div>
+        <div class="card-ts">Sensor MQ5</div>
       </div>
 
       <!-- Estado LED + Buzzer -->
@@ -347,13 +337,25 @@ $jsonGrafica = json_encode($graficaDatos);
       <div class="card card-alertas">
         <div class="card-label">// alertas recientes (últimas 5)</div>
 
-        <?php if (empty($alertas)): ?>
+        <?php 
+        $hayAlertaMQ5 = $ultimaLectura && $ultimaLectura->mq5_valor > 300;
+        if (empty($alertas) && !$hayAlertaMQ5): 
+        ?>
           <div class="no-alertas">&#10003; Sin alertas registradas</div>
         <?php else: ?>
+          <?php if ($hayAlertaMQ5): ?>
+            <div class="alerta-item">
+              <span class="badge badge-critico">
+                CRÍTICO
+              </span>
+              <span class="alerta-msg">Gas combustible MQ5: <?= number_format($ultimaLectura->mq5_valor, 0) ?> ppm</span>
+              <span class="alerta-hora"><?= date('d/m H:i', strtotime($ultimaLectura->fecha_hora)) ?></span>
+            </div>
+          <?php endif; ?>
           <?php foreach ($alertas as $alerta): ?>
             <div class="alerta-item">
-              <span class="badge <?= $alerta->nivel_peligro === 'CRITICO' ? 'badge-critico' : 'badge-advertencia' ?>">
-                <?= $alerta->nivel_peligro ?>
+              <span class="badge <?= ($alerta->nivel_peligro === 'CRITICO' || strtolower($alerta->nivel_peligro) === 'muy alto') ? 'badge-critico' : 'badge-advertencia' ?>">
+                <?= strtoupper($alerta->nivel_peligro) ?>
               </span>
               <span class="alerta-msg"><?= Html::encode($alerta->mensaje_alerta) ?></span>
               <span class="alerta-hora"><?= date('d/m H:i', strtotime($alerta->fecha_hora)) ?></span>
@@ -387,92 +389,93 @@ $jsonGrafica = json_encode($graficaDatos);
 <!-- Chart.js desde CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const datos = <?= $jsonGrafica ?>;
-const labels      = datos.map(d => d.hora);
-const mq135Data   = datos.map(d => d.mq135);
-const tempData    = datos.map(d => d.temperatura);
-const humData     = datos.map(d => d.humedad);
+fetch('/sistema_monitoreo_yii/frontend/web/index.php?r=sensor/historial&id=1')
+  .then(response => response.json())
+  .then(json => {
+    if (!json.ok) return;
+    const datos = json.data;
+    const labels      = datos.map(d => {
+      const parts = d.fecha_hora.split(' ');
+      if (parts.length > 1) {
+        const timeParts = parts[1].split(':');
+        return timeParts[0] + ':' + timeParts[1];
+      }
+      return d.fecha_hora;
+    });
+    const mq135Data   = datos.map(d => d.mq135);
+    const mq5Data     = datos.map(d => d.mq5);
 
-const ctx = document.getElementById('chartLecturas').getContext('2d');
+    const ctx = document.getElementById('chartLecturas').getContext('2d');
 
-new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: labels,
-    datasets: [
-      {
-        label: 'MQ135 (ppm)',
-        data: mq135Data,
-        borderColor: '#00b4d8',
-        backgroundColor: '#00b4d822',
-        borderWidth: 2,
-        pointRadius: 3,
-        tension: 0.3,
-        yAxisID: 'y',
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'MQ135 (ppm)',
+            data: mq135Data,
+            borderColor: '#00b4d8',
+            backgroundColor: '#00b4d822',
+            borderWidth: 2,
+            pointRadius: 3,
+            tension: 0.3,
+            yAxisID: 'y',
+          },
+          {
+            label: 'MQ5 (ppm)',
+            data: mq5Data,
+            borderColor: '#FF6B35',
+            backgroundColor: '#FF6B3522',
+            borderWidth: 2,
+            pointRadius: 3,
+            tension: 0.3,
+            yAxisID: 'y1',
+          },
+        ],
       },
-      {
-        label: 'Temperatura (°C)',
-        data: tempData,
-        borderColor: '#ff6b35',
-        backgroundColor: '#ff6b3522',
-        borderWidth: 2,
-        pointRadius: 3,
-        tension: 0.3,
-        yAxisID: 'y1',
-      },
-      {
-        label: 'Humedad (%)',
-        data: humData,
-        borderColor: '#06d6a0',
-        backgroundColor: '#06d6a022',
-        borderWidth: 2,
-        pointRadius: 3,
-        tension: 0.3,
-        yAxisID: 'y1',
-      },
-    ],
-  },
-  options: {
-    responsive: true,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: {
-        labels: {
-          color: '#ccd6f6',
-          font: { family: "'Share Tech Mono', monospace", size: 11 },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#ccd6f6',
+              font: { family: "'Share Tech Mono', monospace", size: 11 },
+            },
+          },
+          tooltip: {
+            backgroundColor: '#111827',
+            borderColor: '#1e2d40',
+            borderWidth: 1,
+            titleColor: '#00b4d8',
+            bodyColor: '#ccd6f6',
+            titleFont: { family: "'Share Tech Mono', monospace" },
+            bodyFont:  { family: "'Share Tech Mono', monospace" },
+          },
+        },
+        scales: {
+          x: {
+            ticks: { color: '#4a5568', font: { family: "'Share Tech Mono', monospace", size: 10 } },
+            grid:  { color: '#1e2d40' },
+          },
+          y: {
+            type: 'linear',
+            position: 'left',
+            title: { display: true, text: 'ppm', color: '#00b4d8', font: { family: "'Share Tech Mono', monospace" } },
+            ticks: { color: '#00b4d8', font: { family: "'Share Tech Mono', monospace", size: 10 } },
+            grid:  { color: '#1e2d40' },
+          },
+          y1: {
+            type: 'linear',
+            position: 'right',
+            title: { display: true, text: 'ppm', color: '#FF6B35', font: { family: "'Share Tech Mono', monospace" } },
+            ticks: { color: '#FF6B35', font: { family: "'Share Tech Mono', monospace", size: 10 } },
+            grid:  { drawOnChartArea: false },
+          },
         },
       },
-      tooltip: {
-        backgroundColor: '#111827',
-        borderColor: '#1e2d40',
-        borderWidth: 1,
-        titleColor: '#00b4d8',
-        bodyColor: '#ccd6f6',
-        titleFont: { family: "'Share Tech Mono', monospace" },
-        bodyFont:  { family: "'Share Tech Mono', monospace" },
-      },
-    },
-    scales: {
-      x: {
-        ticks: { color: '#4a5568', font: { family: "'Share Tech Mono', monospace", size: 10 } },
-        grid:  { color: '#1e2d40' },
-      },
-      y: {
-        type: 'linear',
-        position: 'left',
-        title: { display: true, text: 'ppm', color: '#00b4d8', font: { family: "'Share Tech Mono', monospace" } },
-        ticks: { color: '#00b4d8', font: { family: "'Share Tech Mono', monospace", size: 10 } },
-        grid:  { color: '#1e2d40' },
-      },
-      y1: {
-        type: 'linear',
-        position: 'right',
-        title: { display: true, text: '°C / %', color: '#ff6b35', font: { family: "'Share Tech Mono', monospace" } },
-        ticks: { color: '#ff6b35', font: { family: "'Share Tech Mono', monospace", size: 10 } },
-        grid:  { drawOnChartArea: false },
-      },
-    },
-  },
-});
+    });
+  });
 </script>
 <?php endif; ?>
