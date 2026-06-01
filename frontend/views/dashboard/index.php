@@ -340,13 +340,19 @@ $jsonGrafica = json_encode($graficaDatos);
           <div class="side-desc">CORE SENSOR: DHT22</div>
         </div>
         
-        <div class="hud-panel">
-          <div class="panel-header hum-hl">
-              <span>// HUMEDAD</span>
-              <span class="hud-icon">&#128167;</span>
-          </div>
-        <?php endif; ?>
-      </div>
+       <div class="hud-panel">
+  <div class="panel-header hum-hl">
+      <span>// HUMEDAD</span>
+      <span class="hud-icon">&#128167;</span>
+  </div>
+
+  <div class="side-value hum-hl">
+      <?= $ultimaLectura ? number_format($ultimaLectura->dht22_humedad, 1) : '---' ?>
+      <span class="side-unit">%</span>
+  </div>
+
+  <div class="side-desc">CORE SENSOR: DHT22</div>
+</div>
 
       <!-- Temperatura -->
       <div class="card">
