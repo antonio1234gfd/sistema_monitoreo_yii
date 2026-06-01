@@ -2,477 +2,561 @@
 /**
  * ARCHIVO: frontend/views/dashboard/index.php
  * Vista del dashboard de monitoreo de calidad del aire.
- * Solo lectura — visualización de sensores MQ135 + DHT22, LED, alertas y gráficas.
+ * Nivel Superior V2 - DISEÑO DE ALTO IMPACTO (SCI-FI HUD)
  */
 
 use yii\helpers\Html;
 
-$this->title = 'Monitor de Calidad del Aire';
+$this->title = 'SISTEMA DE MONITOREO ATMOSFÉRICO v2.1';
 
-// Colores del LED según estado
-$ledColores = [
-    'VERDE'    => ['bg' => '#00e676', 'label' => 'NORMAL',      'text' => '#003300'],
-    'AMARILLO' => ['bg' => '#ffea00', 'label' => 'ADVERTENCIA', 'text' => '#332200'],
-    'ROJO'     => ['bg' => '#ff1744', 'label' => 'CRÍTICO',     'text' => '#330000'],
-];
+// Configuración de Paleta de Colores Dinámica (Neón saturado)
+$ppmValor = $ultimaLectura ? (float)$ultimaLectura->mq135_valor : 0;
+$estadoColor = '#00f2fe'; // Por defecto (Limpio)
+$estadoTexto = 'ESTABLE';
+$nivelInsignia = 'badge-insignia-buena';
 
-$ledActual   = $estadoActuador ? $estadoActuador->color_led : 'VERDE';
-$ledInfo     = $ledColores[$ledActual] ?? $ledColores['VERDE'];
+if ($ppmValor >= 1000) {
+    $estadoColor = '#ff0055'; // Crítico
+    $estadoTexto = 'PELIGRO - CRÍTICO';
+    $nivelInsignia = 'badge-insignia-critica';
+} elseif ($ppmValor >= 700) {
+    $estadoColor = '#f5af19'; // Advertencia
+    $estadoTexto = 'PRECAUCIÓN - VICIADO';
+    $nivelInsignia = 'badge-insignia-advertencia';
+}
+
 $buzzerActivo = $estadoActuador ? $estadoActuador->buzzer_activo : 0;
+$ledActual = $estadoActuador ? $estadoActuador->color_led : 'VERDE';
 
-// Datos de gráfica en JSON para Chart.js
+// Datos de gráfica en JSON
 $jsonGrafica = json_encode($graficaDatos);
 ?>
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+  /* Importación de fuentes para impacto visual */
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Share+Tech+Mono&display=swap');
 
   :root {
-    --bg:        #0a0e1a;
-    --panel:     #111827;
-    --border:    #1e2d40;
-    --accent:    #00b4d8;
-    --accent2:   #0077b6;
-    --text:      #ccd6f6;
-    --muted:     #4a5568;
-    --mono:      'Share Tech Mono', monospace;
-    --sans:      'Rajdhani', sans-serif;
+    --bg-dark:       #010204;
+    --terminal-black:#0a0c10;
+    /* Colores Neón Principal Dinámico */
+    --u-accent:      <?= $estadoColor ?>;
+    --u-accent-rgb:  <?= hexToRgb($estadoColor) ?>; /* Función auxiliar abajo */
+    
+    --text-primary:  #e0e6ed;
+    --text-muted:     #6c757d;
+    --glass-border:  rgba(255, 255, 255, 0.04);
+    
+    /* Fuentes */
+    --f-sci-fi:      'Orbitron', sans-serif;
+    --f-mono:        'Share Tech Mono', monospace;
   }
 
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); }
+  body { 
+    background-color: var(--bg-dark);
+    /* Fondo técnico sutil */
+    background-image: 
+        linear-gradient(rgba(var(--u-accent-rgb), 0.03) 1px, transparent 1px),
+        linear-gradient(90px, rgba(var(--u-accent-rgb), 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    color: var(--text-primary); 
+    font-family: var(--f-mono);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
 
-  .dash-wrap {
-    max-width: 1200px;
+  /* Efecto de escaneo de líneas (CRT) sutil en toda la pantalla */
+  body::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+    background-size: 100% 4px;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.3;
+  }
+
+  .hud-wrap {
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem 1.5rem;
+    padding: 1.5rem;
+    position: relative;
+    animation: hudOpening 1s ease-out forwards;
   }
 
-  /* ── Header ── */
-  .dash-header {
+  /* ── Header Ultra-Tecnológico ── */
+  .hud-header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: flex-start;
+    padding: 1rem;
+    background: rgba(10, 12, 16, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-top: 2px solid var(--u-accent);
     margin-bottom: 2rem;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 1rem;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
   }
-  .dash-header h1 {
-    font-family: var(--sans);
+  .hud-title-zone h1 {
+    font-family: var(--f-sci-fi);
     font-weight: 700;
     font-size: 1.6rem;
     letter-spacing: 3px;
+    color: #fff;
     text-transform: uppercase;
-    color: var(--accent);
+    text-shadow: 0 0 10px rgba(var(--u-accent-rgb), 0.7);
     margin: 0;
   }
-  .dash-header .sub {
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    color: var(--muted);
-    letter-spacing: 2px;
-    margin-top: 4px;
-  }
-  .btn-refresh {
-    font-family: var(--mono);
+  .hud-title-zone .status-insignia {
+    font-family: var(--f-sci-fi);
     font-size: 0.8rem;
     letter-spacing: 2px;
-    padding: 0.55rem 1.4rem;
-    border: 1px solid var(--accent);
-    background: transparent;
-    color: var(--accent);
-    cursor: pointer;
-    transition: all .2s;
-    text-decoration: none;
-    display: inline-block;
+    color: var(--u-accent);
+    margin-top: 5px;
   }
-  .btn-refresh:hover {
-    background: var(--accent);
-    color: var(--bg);
-    text-decoration: none;
+  .hud-title-zone .status-insignia::before {
+      content: ''; display: inline-block; width: 10px; height: 10px;
+      border-radius: 50%; background: var(--u-accent); margin-right: 8px;
+      box-shadow: 0 0 10px var(--u-accent);
   }
 
-  /* ── Sin dispositivo ── */
-  .no-device {
-    text-align: center;
-    padding: 4rem 2rem;
-    font-family: var(--mono);
-    color: var(--muted);
-    border: 1px dashed var(--border);
+  .hud-meta-zone { text-align: right; font-size: 0.8rem; color: var(--text-muted); }
+  .hud-meta-zone strong { color: var(--text-primary); }
+
+  .btn-sys-refresh {
+    font-family: var(--f-sci-fi); font-size: 0.8rem; letter-spacing: 2px;
+    padding: 0.7rem 1.8rem;
+    border: 2px solid var(--u-accent);
+    background: transparent; color: var(--u-accent);
+    text-decoration: none; border-radius: 0; cursor: pointer;
+    transition: all 0.2s ease;
+    clip-path: polygon(15% 0, 100% 0, 85% 100%, 0% 100%); /* Forma biselada */
+  }
+  .btn-sys-refresh:hover {
+    background: var(--u-accent); color: var(--bg-dark);
+    box-shadow: 0 0 25px rgba(var(--u-accent-rgb), 0.6);
   }
 
-  /* ── Grid principal ── */
-  .grid-top {
+  /* ── Layout Principal ── */
+  .hud-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.2rem;
-    margin-bottom: 1.5rem;
+    grid-template-columns: 1fr 3fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 1.5rem;
   }
+  @media (max-width: 1100px) { .hud-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 768px) { .hud-grid { grid-template-columns: 1fr; } }
 
-  /* ── Panel / Card ── */
-  .card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    padding: 1.4rem 1.6rem;
+  /* ── Estilo de Paneles Glass ── */
+  .hud-panel {
+    background: rgba(var(--terminal-black), 0.8);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border);
+    border-radius: 4px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     position: relative;
-    overflow: hidden;
+    transition: all 0.3s ease;
+    opacity: 0; animation: panelFadeIn 0.5s ease-out forwards;
   }
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 3px; height: 100%;
-    background: var(--accent);
-  }
-  .card-label {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    letter-spacing: 3px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 0.6rem;
-  }
-  .card-value {
-    font-family: var(--mono);
-    font-size: 2.4rem;
-    font-weight: bold;
-    color: #e2e8f0;
-    line-height: 1;
-  }
-  .card-unit {
-    font-size: 0.9rem;
-    color: var(--muted);
-    margin-left: 4px;
-  }
-  .card-ts {
-    font-family: var(--mono);
-    font-size: 0.62rem;
-    color: var(--muted);
-    margin-top: 0.5rem;
+  .hud-panel:hover { border-color: rgba(var(--u-accent-rgb), 0.2); }
+  
+  /* Retrasos de animación para efecto cascada */
+  .col-side-left .hud-panel:nth-child(1) { animation-delay: 0.2s; }
+  .col-side-left .hud-panel:nth-child(2) { animation-delay: 0.3s; }
+  .col-main-hero { animation-delay: 0.1s; }
+  .col-side-right .hud-panel:nth-child(1) { animation-delay: 0.4s; }
+  .full-width-panel { animation-delay: 0.5s; }
+
+  .panel-header {
+    font-family: var(--f-sci-fi); font-size: 0.9rem; font-weight: 600;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05);
   }
 
-  /* ── Card LED ── */
-  .card-led {
-    border-color: <?= $ledInfo['bg'] ?>;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.6rem;
+  /* ── UNIDAD CENTRAL HERO (MQ135) ── */
+  .col-main-hero {
+    grid-column: 2; grid-row: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 2px solid rgba(var(--u-accent-rgb), 0.2);
+    box-shadow: 0 0 50px rgba(var(--u-accent-rgb), 0.2);
   }
-  .card-led::before { background: <?= $ledInfo['bg'] ?>; }
+  
+  .hero-label {
+    font-family: var(--f-sci-fi); font-size: 1.1rem; color: var(--text-primary);
+    letter-spacing: 4px; text-transform: uppercase; margin-bottom: 1rem;
+    text-shadow: 0 0 10px rgba(var(--u-accent-rgb), 0.6);
+  }
 
-  .led-orb-wrap { display: flex; align-items: center; gap: 1rem; }
-
-  .led-orb {
-    width: 52px; height: 52px;
+  .ppm-circle-wrap {
+    position: relative;
+    width: 280px; height: 280px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  /* Anillo giratorio de estatus */
+  .ppm-circle-wrap::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
     border-radius: 50%;
-    background: <?= $ledInfo['bg'] ?>;
-    box-shadow: 0 0 18px 6px <?= $ledInfo['bg'] ?>88;
-    <?php if ($ledActual === 'ROJO'): ?>
-    animation: pulse-led 1s ease-in-out infinite;
-    <?php endif; ?>
-  }
-  @keyframes pulse-led {
-    0%, 100% { box-shadow: 0 0 18px 6px #ff174488; }
-    50%       { box-shadow: 0 0 32px 14px #ff174488; }
+    border: 4px solid rgba(var(--u-accent-rgb), 0.1);
+    border-top-color: var(--u-accent);
+    animation: spin 3s linear infinite;
+    box-shadow: 0 0 30px rgba(var(--u-accent-rgb), 0.3);
   }
 
-  .led-info .led-estado {
-    font-family: var(--sans);
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: <?= $ledInfo['bg'] ?>;
-    letter-spacing: 2px;
+  .ppm-value {
+    font-family: var(--f-mono); font-size: 6.5rem; font-weight: 700;
+    color: #fff; line-height: 1; margin: 0;
+    text-shadow: 0 0 30px var(--u-accent), 0 0 60px var(--u-accent);
   }
-  .led-info .led-buzzer {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    letter-spacing: 2px;
-    color: var(--muted);
-    margin-top: 2px;
+  .ppm-unit {
+    font-family: var(--f-sci-fi); font-size: 1.2rem; color: var(--u-accent);
+    letter-spacing: 2px; text-transform: uppercase; position: absolute; bottom: 60px;
   }
-  .led-info .led-buzzer.on { color: #ff1744; }
-
-  /* ── Alertas ── */
-  .card-alertas { grid-column: span 2; }
-  @media (max-width: 768px) { .card-alertas { grid-column: span 1; } }
-
-  .alerta-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.8rem;
-    padding: 0.6rem 0;
-    border-bottom: 1px solid var(--border);
-    font-family: var(--mono);
-    font-size: 0.75rem;
-  }
-  .alerta-item:last-child { border-bottom: none; }
-
-  .badge {
-    padding: 2px 8px;
-    font-size: 0.62rem;
-    letter-spacing: 1.5px;
-    font-weight: bold;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .badge-critico     { background: #ff174422; color: #ff1744; border: 1px solid #ff174466; }
-  .badge-advertencia { background: #ffea0022; color: #ffea00; border: 1px solid #ffea0066; }
-
-  .alerta-msg  { color: var(--text); line-height: 1.4; }
-  .alerta-hora { color: var(--muted); font-size: 0.62rem; white-space: nowrap; flex-shrink: 0; margin-left: auto; }
-
-  .no-alertas {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    color: var(--muted);
-    padding: 0.5rem 0;
+  
+  .status-detailed {
+      font-family: var(--f-sci-fi); font-size: 1.2rem; color: var(--u-accent);
+      letter-spacing: 2px; font-weight: 700; text-transform: uppercase;
+      margin-top: 1.5rem; background: rgba(var(--u-accent-rgb), 0.1);
+      padding: 8px 25px; border-radius: 4px;
   }
 
-  /* ── Gráfica ── */
-  .card-chart {
-    margin-top: 1.5rem;
-    padding: 1.6rem;
+  /* ── Columnas Laterales (DHT22) ── */
+  .side-value {
+    font-family: var(--f-mono); font-size: 3.5rem; font-weight: bold;
+    color: #fff; line-height: 1; margin-top: 0.5rem;
   }
-  .chart-title {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    letter-spacing: 3px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-  }
-  canvas { max-height: 260px; }
+  .side-unit { font-size: 1.4rem; font-weight: 400; vertical-align: super;}
+  .side-desc { color: var(--text-muted); font-size: 0.85rem; margin-top: 8px; letter-spacing: 1px;}
+  
+  /* Detalles visuales en tarjetas laterales */
+  .temp-hl { --side-accent: #ff9f43; color: var(--side-accent) !important; }
+  .hum-hl { --side-accent: #54a0ff; color: var(--side-accent) !important; }
 
-  /* ── Timestamp global ── */
-  .ts-global {
-    text-align: right;
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    color: var(--muted);
-    margin-top: 1.5rem;
-    letter-spacing: 1.5px;
+  /* ── Panel LED (Look 3D mejorado) ── */
+  .col-side-right { display: flex; flex-direction: column; gap: 1.5rem;}
+  .led-panel-content { display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;}
+  .sys-led-orb {
+    width: 65px; height: 65px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.1);
+    background: radial-gradient(circle at 35% 35%, #fff 0%, #aaa 10%, #000 100%); /* Look apagado */
+    position: relative; transition: all 0.3s;
+  }
+  /* Estilos de LED encendido basados en el color */
+  <?php if ($ledActual === 'VERDE'): ?>
+  .sys-led-orb { background: radial-gradient(circle at 35% 35%, #fff 0%, #39ff14 40%, #004d00 100%); box-shadow: 0 0 25px #39ff14, inset 0 0 10px rgba(255,255,255,0.5); }
+  <?php elseif ($ledActual === 'AMARILLO'): ?>
+  .sys-led-orb { background: radial-gradient(circle at 35% 35%, #fff 0%, #ffea00 40%, #4d4600 100%); box-shadow: 0 0 25px #ffea00, inset 0 0 10px rgba(255,255,255,0.5); }
+  <?php elseif ($ledActual === 'ROJO'): ?>
+  .sys-led-orb { background: radial-gradient(circle at 35% 35%, #fff 0%, #ff1744 40%, #4d0010 100%); box-shadow: 0 0 35px #ff1744, inset 0 0 10px rgba(255,255,255,0.5); animation: alertPulse 1.5s infinite; }
+  <?php endif; ?>
+
+  .sys-text-data { font-family: var(--f-sci-fi); }
+  .sys-led-label { color: #fff; font-size: 1.3rem; letter-spacing: 1px; font-weight: 700; }
+  .sys-buzzer {
+      margin-top: 4px; font-size: 0.8rem; letter-spacing: 1px; padding: 2px 6px; border-radius: 2px; display: inline-block;
+      <?= $buzzerActivo ? 'background:#ff1744; color:#fff; font-weight:700;' : 'background:rgba(255,255,255,0.05); color:var(--text-muted);' ?>
+  }
+
+  /* ── Panel de Alertas (Estilo Terminal) ── */
+  .full-width-panel { grid-column: 1 / -1; border-color: rgba(255, 23, 68, 0.15); }
+  .alert-log-window {
+    max-height: 200px; overflow-y: auto;
+    font-family: var(--f-mono); font-size: 0.85rem;
+    padding-right: 10px;
+  }
+  .alert-entry {
+    display: grid; grid-template-columns: 140px 100px 1fr;
+    gap: 15px; padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: background 0.1s;
+  }
+  .alert-entry:hover { background: rgba(255,255,255,0.01); }
+  .a-time { color: var(--text-muted); }
+  .a-level { font-weight: bold; text-transform: uppercase; text-align: center;}
+  .a-msg { color: var(--text-primary); }
+
+  .lvl-critico { color: #ff1744; text-shadow: 0 0 5px #ff1744; }
+  .lvl-advertencia { color: #ffea00; text-shadow: 0 0 5px #ffea00; }
+  
+  .scroll-styled::-webkit-scrollbar { width: 5px; }
+  .scroll-styled::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+  .scroll-styled::-webkit-scrollbar-thumb { background: rgba(var(--u-accent-rgb), 0.2); border-radius: 2px; }
+
+  /* ── Gráfica Premium HUD ── */
+  canvas#chartHud { width: 100% !important; max-height: 380px; }
+
+  /* ── Animaciones Base ── */
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+  @keyframes alertPulse { 0%, 100% { box-shadow: 0 0 35px #ff1744; opacity: 1; } 50% { box-shadow: 0 0 60px #ff1744; opacity: 0.8; } }
+  
+  @keyframes hudOpening {
+      from { opacity: 0; transform: scale(1.05); filter: blur(5px); }
+      to { opacity: 1; transform: scale(1); filter: blur(0); }
+  }
+  @keyframes panelFadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
   }
 </style>
 
-<div class="dash-wrap">
+<div class="hud-wrap">
 
-  <!-- Header -->
-  <div class="dash-header">
-    <div>
-      <h1>&#9632; Monitor de Calidad del Aire</h1>
-      <div class="sub">
-        <?php if ($dispositivo): ?>
-          DISPOSITIVO: <?= Html::encode($dispositivo->nombre) ?>
-          &nbsp;|&nbsp; UBICACIÓN: <?= Html::encode($dispositivo->ubicacion) ?>
-          &nbsp;|&nbsp; RED: <?= $dispositivo->estado_red ? '<span style="color:#00e676">EN LÍNEA</span>' : '<span style="color:#ff1744">DESCONECTADO</span>' ?>
-        <?php else: ?>
-          SIN DISPOSITIVO ASIGNADO
-        <?php endif; ?>
-      </div>
+  <header class="hud-header">
+    <div class="hud-title-zone">
+      <h1><?= Html::encode($this->title) ?></h1>
+      <div class="status-insignia">ESTADO DE RED: <?= $dispositivo && $dispositivo->estado_red ? 'EN LÍNEA' : '<span style="color:#ff1744">FUERA DE LÍNEA</span>' ?></div>
     </div>
-    <?= Html::a('&#8635; ACTUALIZAR', ['dashboard/index'], ['class' => 'btn-refresh']) ?>
-  </div>
+    
+    <div class="hud-meta-zone">
+        <?php if ($dispositivo): ?>
+            <div>NODO ID: <strong><?= Html::encode($dispositivo->nombre) ?></strong></div>
+            <div>UBICACIÓN: <strong><?= Html::encode($dispositivo->ubicacion) ?></strong></div>
+        <?php endif; ?>
+        <div style="margin-top:10px;">
+             <?= Html::a('[ RESCANEAR SISTEMA ]', ['dashboard/index'], ['class' => 'btn-sys-refresh']) ?>
+        </div>
+    </div>
+  </header>
 
-  <?php if (!$dispositivo): ?>
-    <div class="no-device">
-      <p>No tienes ningún dispositivo ESP32 registrado.</p>
-      <p>Contacta al administrador para que te asigne uno.</p>
+  <?php if ($dispositivo): ?>
+
+    <div class="hud-grid">
+    
+      <aside class="col-side-left">
+        <div class="hud-panel">
+          <div class="panel-header temp-hl">
+              <span>// TEMPERATURA</span>
+              <span class="hud-icon">&#127777;</span>
+          </div>
+          <div class="side-value temp-hl">
+            <?= $ultimaLectura ? number_format($ultimaLectura->dht22_temperatura, 1) : '---' ?><span class="side-unit">°C</span>
+          </div>
+          <div class="side-desc">CORE SENSOR: DHT22</div>
+        </div>
+        
+        <div class="hud-panel">
+          <div class="panel-header hum-hl">
+              <span>// HUMEDAD</span>
+              <span class="hud-icon">&#128167;</span>
+          </div>
+          <div class="side-value hum-hl">
+            <?= $ultimaLectura ? number_format($ultimaLectura->dht22_humedad, 0) : '---' ?><span class="side-unit">%</span>
+          </div>
+          <div class="side-desc">AMBIENT RELATIVE HUMIDITY</div>
+        </div>
+      </aside>
+
+      <main class="hud-panel col-main-hero">
+        <div class="hero-label">// GLOBAL AIR QUALITY INDEX //</div>
+        
+        <div class="ppm-circle-wrap">
+          <p class="ppm-value"><?= $ultimaLectura ? number_format($ultimaLectura->mq135_valor, 0) : '0' ?></p>
+          <span class="ppm-unit">PPM</span>
+        </div>
+        
+        <div class="status-detailed">
+            <?= $estadoTexto ?>
+        </div>
+        
+        <?php if ($ultimaLectura): ?>
+            <div style="color:var(--text-muted); font-size:0.75rem; margin-top:1.5rem;">
+                LAST DATA ACQUISITION: <?= date('Y.m.d | H:i:s', strtotime($ultimaLectura->fecha_hora)) ?>
+            </div>
+        <?php endif; ?>
+      </main>
+      
+      <aside class="col-side-right">
+        <div class="hud-panel">
+            <div class="panel-header"><span>// ACTUATOR STATUS</span></div>
+            <div class="led-panel-content">
+                <div class="sys-led-orb"></div>
+                <div class="sys-text-data">
+                    <div class="sys-led-label">LED: <?= $ledActual ?></div>
+                    <div class="sys-buzzer">BUZZER: <?= $buzzerActivo ? 'ACTIVE' : 'SILENCED' ?></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="hud-panel">
+            <div class="panel-header"><span>// SYS MODE</span></div>
+            <div style="font-family:var(--f-sci-fi); font-size:1.8rem; color:#fff; font-weight:700; text-transform:uppercase;">
+                <?= $estadoActuador ? $estadoActuador->modo_operacion : 'N/A' ?>
+            </div>
+        </div>
+      </aside>
+
+      <section class="hud-panel full-width-panel">
+        <div class="panel-header" style="color:#ff1744; border-bottom-color: rgba(255,23,68,0.2);">
+            <span>[ SYSTEM ALERT LOG ]</span>
+            <span>TOTAL EVENTOS: <?= count($alertas) ?></span>
+        </div>
+        
+        <div class="alert-log-window scroll-styled">
+          <?php if (empty($alertas)): ?>
+            <div style="color:var(--text-muted); text-align:center; padding: 2rem;">>>> NO CRITICAL EVENTS DETECTED. SYSTEM NOMINAL. <<<</div>
+          <?php else: ?>
+            <?php foreach ($alertas as $alerta): ?>
+              <?php $lvlClass = $alerta->nivel_peligro === 'CRITICO' ? 'lvl-critico' : 'lvl-advertencia'; ?>
+              <div class="alert-entry">
+                <span class="a-time">[ <?= date('d/m/Y H:i', strtotime($alerta->fecha_hora)) ?> ]</span>
+                <span class="a-level <?= $lvlClass ?>">// <?= $alerta->nivel_peligro ?> //</span>
+                <span class="a-msg"><?= Html::encode($alerta->mensaje_alerta) ?></span>
+              </div>
+            <?php endforeach; ?>
+          <?php endif; ?>
+        </div>
+      </section>
+
+      <?php if (!empty($graficaDatos)): ?>
+      <section class="hud-panel full-width-panel">
+        <div class="panel-header"><span>// ANALYTICAL DATA HISTORY (20 CYCLES)</span></div>
+        <div class="chart-container" style="position:relative; height:40vh;">
+            <canvas id="chartHud"></canvas>
+        </div>
+      </section>
+      <?php endif; ?>
+
     </div>
 
   <?php else: ?>
-
-    <!-- Fila 1: tarjetas de sensores + LED -->
-    <div class="grid-top">
-
-      <!-- MQ135 -->
-      <div class="card">
-        <div class="card-label">// calidad del aire</div>
-        <div class="card-value">
-          <?= $ultimaLectura ? number_format($ultimaLectura->mq135_valor, 0) : '---' ?>
-          <span class="card-unit">ppm</span>
-        </div>
-        <?php if ($ultimaLectura && $ultimaLectura->mq135_valor !== null): ?>
-          <?php $ppm = (float)$ultimaLectura->mq135_valor; ?>
-          <div class="card-ts">
-            <?php if ($ppm < 700): ?>
-              <span style="color:#00e676">&#9679; Aire limpio</span>
-            <?php elseif ($ppm < 1000): ?>
-              <span style="color:#ffea00">&#9679; Aire viciado</span>
-            <?php else: ?>
-              <span style="color:#ff1744">&#9679; Contaminación crítica</span>
-            <?php endif; ?>
-          </div>
-        <?php endif; ?>
-      </div>
-
-      <!-- Temperatura -->
-      <div class="card">
-        <div class="card-label">// temperatura</div>
-        <div class="card-value">
-          <?= $ultimaLectura ? number_format($ultimaLectura->dht22_temperatura, 1) : '---' ?>
-          <span class="card-unit">°C</span>
-        </div>
-        <div class="card-ts">Sensor DHT22</div>
-      </div>
-
-      <!-- Humedad -->
-      <div class="card">
-        <div class="card-label">// humedad relativa</div>
-        <div class="card-value">
-          <?= $ultimaLectura ? number_format($ultimaLectura->dht22_humedad, 1) : '---' ?>
-          <span class="card-unit">%</span>
-        </div>
-        <div class="card-ts">Sensor DHT22</div>
-      </div>
-
-      <!-- Estado LED + Buzzer -->
-      <div class="card card-led">
-        <div class="card-label">// estado del sistema</div>
-        <div class="led-orb-wrap">
-          <div class="led-orb"></div>
-          <div class="led-info">
-            <div class="led-estado"><?= $ledActual ?></div>
-            <div class="led-buzzer <?= $buzzerActivo ? 'on' : '' ?>">
-              BUZZER: <?= $buzzerActivo ? '&#128266; ACTIVO' : 'APAGADO' ?>
-            </div>
-          </div>
-        </div>
-        <div class="card-ts">
-          MODO: <?= $estadoActuador ? $estadoActuador->modo_operacion : 'N/A' ?><br>
-          <?= $estadoActuador ? date('d/m/Y H:i:s', strtotime($estadoActuador->ultima_actualizacion)) : '' ?>
-        </div>
-      </div>
-
-      <!-- Alertas enviadas -->
-      <div class="card card-alertas">
-        <div class="card-label">// alertas recientes (últimas 5)</div>
-
-        <?php if (empty($alertas)): ?>
-          <div class="no-alertas">&#10003; Sin alertas registradas</div>
-        <?php else: ?>
-          <?php foreach ($alertas as $alerta): ?>
-            <div class="alerta-item">
-              <span class="badge <?= $alerta->nivel_peligro === 'CRITICO' ? 'badge-critico' : 'badge-advertencia' ?>">
-                <?= $alerta->nivel_peligro ?>
-              </span>
-              <span class="alerta-msg"><?= Html::encode($alerta->mensaje_alerta) ?></span>
-              <span class="alerta-hora"><?= date('d/m H:i', strtotime($alerta->fecha_hora)) ?></span>
-            </div>
-          <?php endforeach; ?>
-        <?php endif; ?>
-      </div>
-
-    </div><!-- /grid-top -->
-
-    <!-- Gráfica de lecturas -->
-    <?php if (!empty($graficaDatos)): ?>
-    <div class="card card-chart">
-      <div class="chart-title">// historial de lecturas (últimas 20)</div>
-      <canvas id="chartLecturas"></canvas>
+    <div class="hud-panel" style="text-align:center; padding: 5rem 2rem; border-color:#ff1744; animation: alertPulse 2s infinite;">
+        <h2 style="font-family:var(--f-sci-fi); color:#ff1744;">ERROR: DISPOSITIVO NO ASIGNADO</h2>
+        <p style="font-family:var(--f-mono); color:var(--text-muted);">Por favor, contacte al administrador de sistemas para vincular un nodo ESP32.</p>
     </div>
-    <?php endif; ?>
-
-    <!-- Timestamp última lectura -->
-    <?php if ($ultimaLectura): ?>
-    <div class="ts-global">
-      ÚLTIMA LECTURA: <?= date('d/m/Y H:i:s', strtotime($ultimaLectura->fecha_hora)) ?>
-    </div>
-    <?php endif; ?>
-
   <?php endif; ?>
 
-</div><!-- /dash-wrap -->
+</div>
+
+<?php
+// Función para convertir Hexadecimal a RGB (necesaria para transparencias dinámicas en CSS)
+function hexToRgb($hex) {
+    $hex = str_replace("#", "", $hex);
+    if(strlen($hex) == 3) {
+        $r = hexdec(substr($hex,0,1).substr($hex,0,1));
+        $g = hexdec(substr($hex,1,1).substr($hex,1,1));
+        $b = hexdec(substr($hex,2,1).substr($hex,2,1));
+    } else {
+        $r = hexdec(substr($hex,0,2));
+        $g = hexdec(substr($hex,2,2));
+        $b = hexdec(substr($hex,4,2));
+    }
+    return "$r, $g, $b";
+}
+?>
 
 <?php if (!empty($graficaDatos)): ?>
-<!-- Chart.js desde CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const datos = <?= $jsonGrafica ?>;
-const labels      = datos.map(d => d.hora);
-const mq135Data   = datos.map(d => d.mq135);
-const tempData    = datos.map(d => d.temperatura);
-const humData     = datos.map(d => d.humedad);
+document.addEventListener('DOMContentLoaded', function() {
+  const datos = <?= $jsonGrafica ?>;
+  const labels      = datos.map(d => d.hora);
+  
+  const ctx = document.getElementById('chartHud').getContext('2d');
 
-const ctx = document.getElementById('chartLecturas').getContext('2d');
+  // Configuración de estilos globales de Chart.js para que coincidan con el HUD
+  Chart.defaults.color = '#6c757d'; // text-muted
+  Chart.defaults.font.family = "'Share Tech Mono', monospace";
+  Chart.defaults.font.size = 11;
 
-new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: labels,
-    datasets: [
-      {
-        label: 'MQ135 (ppm)',
-        data: mq135Data,
-        borderColor: '#00b4d8',
-        backgroundColor: '#00b4d822',
-        borderWidth: 2,
-        pointRadius: 3,
-        tension: 0.3,
-        yAxisID: 'y',
-      },
-      {
-        label: 'Temperatura (°C)',
-        data: tempData,
-        borderColor: '#ff6b35',
-        backgroundColor: '#ff6b3522',
-        borderWidth: 2,
-        pointRadius: 3,
-        tension: 0.3,
-        yAxisID: 'y1',
-      },
-      {
-        label: 'Humedad (%)',
-        data: humData,
-        borderColor: '#06d6a0',
-        backgroundColor: '#06d6a022',
-        borderWidth: 2,
-        pointRadius: 3,
-        tension: 0.3,
-        yAxisID: 'y1',
-      },
-    ],
-  },
-  options: {
-    responsive: true,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: {
-        labels: {
-          color: '#ccd6f6',
-          font: { family: "'Share Tech Mono', monospace", size: 11 },
+  // Función auxiliar para crear gradientes HUD
+  function createHudGradient(colorStart, colorEnd) {
+      let grad = ctx.createLinearGradient(0, 0, 0, 300);
+      grad.addColorStop(0, colorStart);
+      grad.addColorStop(1, colorEnd);
+      return grad;
+  }
+
+  const datasetConfig = {
+      borderWidth: 2,
+      pointRadius: 3,
+      pointHoverRadius: 6,
+      pointBackgroundColor: '#010204',
+      pointBorderWidth: 2,
+      fill: true,
+      tension: 0.4
+  };
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          ...datasetConfig,
+          label: ' MQ135 (ppm)',
+          data: datos.map(d => d.mq135),
+          borderColor: '<?= $estadoColor ?>',
+          backgroundColor: createHudGradient('rgba(<?= hexToRgb($estadoColor) ?>, 0.25)', 'rgba(<?= hexToRgb($estadoColor) ?>, 0)'),
+          pointBorderColor: '<?= $estadoColor ?>',
+          yAxisID: 'y',
+        },
+        {
+          ...datasetConfig,
+          label: ' TEMP (°C)',
+          data: datos.map(d => d.temperatura),
+          borderColor: '#ff9f43', // Neon Orange
+          backgroundColor: createHudGradient('rgba(255, 159, 67, 0.2)', 'rgba(255, 159, 67, 0)'),
+          pointBorderColor: '#ff9f43',
+          yAxisID: 'y1',
+        },
+        {
+          ...datasetConfig,
+          label: ' HUM (%)',
+          data: datos.map(d => d.humedad),
+          borderColor: '#54a0ff', // Neon Blue
+          backgroundColor: createHudGradient('rgba(84, 160, 255, 0.2)', 'rgba(84, 160, 255, 0)'),
+          pointBorderColor: '#54a0ff',
+          yAxisID: 'y1',
+        }
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { color: '#e0e6ed', usePointStyle: true, pointStyle: 'rectRot', boxWidth: 10, font: { family: "'Orbitron', sans-serif", size: 12 } }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(10, 12, 16, 0.9)',
+          titleColor: '<?= $estadoColor ?>',
+          titleFont: { family: "'Orbitron', sans-serif" },
+          bodyColor: '#fff',
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
+          padding: 15,
+          usePointStyle: true,
+          boxPadding: 8
         },
       },
-      tooltip: {
-        backgroundColor: '#111827',
-        borderColor: '#1e2d40',
-        borderWidth: 1,
-        titleColor: '#00b4d8',
-        bodyColor: '#ccd6f6',
-        titleFont: { family: "'Share Tech Mono', monospace" },
-        bodyFont:  { family: "'Share Tech Mono', monospace" },
+      scales: {
+        x: { 
+            grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
+            ticks: { font: { size: 10 } }
+        },
+        y: {
+          type: 'linear', position: 'left',
+          title: { display: true, text: 'PPM', color: '<?= $estadoColor ?>', font: { family: "'Orbitron', sans-serif", weight: 'bold' } },
+          grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
+          ticks: { color: '<?= $estadoColor ?>' }
+        },
+        y1: {
+          type: 'linear', position: 'right',
+          title: { display: true, text: '°C / %', color: '#ff9f43', font: { family: "'Orbitron', sans-serif", weight: 'bold' } },
+          grid: { drawOnChartArea: false }, // No dibujar líneas de cuadrícula para el segundo eje
+          ticks: { color: '#ff9f43' }
+        },
       },
     },
-    scales: {
-      x: {
-        ticks: { color: '#4a5568', font: { family: "'Share Tech Mono', monospace", size: 10 } },
-        grid:  { color: '#1e2d40' },
-      },
-      y: {
-        type: 'linear',
-        position: 'left',
-        title: { display: true, text: 'ppm', color: '#00b4d8', font: { family: "'Share Tech Mono', monospace" } },
-        ticks: { color: '#00b4d8', font: { family: "'Share Tech Mono', monospace", size: 10 } },
-        grid:  { color: '#1e2d40' },
-      },
-      y1: {
-        type: 'linear',
-        position: 'right',
-        title: { display: true, text: '°C / %', color: '#ff6b35', font: { family: "'Share Tech Mono', monospace" } },
-        ticks: { color: '#ff6b35', font: { family: "'Share Tech Mono', monospace", size: 10 } },
-        grid:  { drawOnChartArea: false },
-      },
-    },
-  },
+  });
 });
 </script>
 <?php endif; ?>
