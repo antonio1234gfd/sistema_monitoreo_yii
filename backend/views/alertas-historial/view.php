@@ -13,7 +13,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 // Configuración visual según nivel de peligro
 $niveles = [
-    'bajo'     => ['bg' => '#EAF3DE', 'border' => '#97C459', 'text' => '#27500A', 'icon' => 'bi-info-circle'],
+    'bajo'     => ['bg' => '#EAF3DE', 'border' => '#8ec049', 'text' => '#27500A', 'icon' => 'bi-info-circle'],
     'medio'    => ['bg' => '#FAEEDA', 'border' => '#EF9F27', 'text' => '#633806', 'icon' => 'bi-exclamation-triangle'],
     'alto'     => ['bg' => '#FCEBEB', 'border' => '#F09595', 'text' => '#791F1F', 'icon' => 'bi-exclamation-octagon'],
     'muy alto' => ['bg' => '#FCEBEB', 'border' => '#E24B4A', 'text' => '#501313', 'icon' => 'bi-x-octagon'],
