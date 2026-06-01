@@ -345,42 +345,40 @@ $jsonGrafica = json_encode($graficaDatos);
               <span>// HUMEDAD</span>
               <span class="hud-icon">&#128167;</span>
           </div>
-          <div class="side-value hum-hl">
-            <?= $ultimaLectura ? number_format($ultimaLectura->dht22_humedad, 0) : '---' ?><span class="side-unit">%</span>
-          </div>
-          <div class="side-desc">AMBIENT RELATIVE HUMIDITY</div>
-        </div>
-      </aside>
-
-      <main class="hud-panel col-main-hero">
-        <div class="hero-label">// GLOBAL AIR QUALITY INDEX //</div>
-        
-        <div class="ppm-circle-wrap">
-          <p class="ppm-value"><?= $ultimaLectura ? number_format($ultimaLectura->mq135_valor, 0) : '0' ?></p>
-          <span class="ppm-unit">PPM</span>
-        </div>
-        
-        <div class="status-detailed">
-            <?= $estadoTexto ?>
-        </div>
-        
-        <?php if ($ultimaLectura): ?>
-            <div style="color:var(--text-muted); font-size:0.75rem; margin-top:1.5rem;">
-                LAST DATA ACQUISITION: <?= date('Y.m.d | H:i:s', strtotime($ultimaLectura->fecha_hora)) ?>
-            </div>
         <?php endif; ?>
-      </main>
-      
-      <aside class="col-side-right">
-        <div class="hud-panel">
-            <div class="panel-header"><span>// ACTUATOR STATUS</span></div>
-            <div class="led-panel-content">
-                <div class="sys-led-orb"></div>
-                <div class="sys-text-data">
-                    <div class="sys-led-label">LED: <?= $ledActual ?></div>
-                    <div class="sys-buzzer">BUZZER: <?= $buzzerActivo ? 'ACTIVE' : 'SILENCED' ?></div>
-                </div>
+      </div>
+
+      <!-- Temperatura -->
+      <div class="card">
+        <div class="card-label">// temperatura</div>
+        <div class="card-value">
+          <?= $ultimaLectura ? number_format($ultimaLectura->dht22_temperatura, 1) : '---' ?>
+          <span class="card-unit">°C</span>
+        </div>
+        <div class="card-ts">Sensor DHT22</div>
+      </div>
+
+      <!-- Humedad -->
+      <div class="card">
+        <div class="card-label">// humedad relativa</div>
+        <div class="card-value">
+          <?= $ultimaLectura ? number_format($ultimaLectura->dht22_humedad, 1) : '---' ?>
+          <span class="card-unit">%</span>
+        </div>
+        <div class="card-ts">Sensor DHT22</div>
+      </div>
+
+      <!-- Estado LED + Buzzer -->
+      <div class="card card-led">
+        <div class="card-label">// estado del sistema</div>
+        <div class="led-orb-wrap">
+          <div class="led-orb"></div>
+          <div class="led-info">
+            <div class="led-estado"><?= $ledActual ?></div>
+            <div class="led-buzzer <?= $buzzerActivo ? 'on' : '' ?>">
+              BUZZER: <?= $buzzerActivo ? '&#128266; ACTIVO' : 'APAGADO' ?>
             </div>
+          </div>
         </div>
         
         <div class="hud-panel">
@@ -389,29 +387,28 @@ $jsonGrafica = json_encode($graficaDatos);
                 <?= $estadoActuador ? $estadoActuador->modo_operacion : 'N/A' ?>
             </div>
         </div>
-      </aside>
+      </div>
 
-      <section class="hud-panel full-width-panel">
-        <div class="panel-header" style="color:#ff1744; border-bottom-color: rgba(255,23,68,0.2);">
-            <span>[ SYSTEM ALERT LOG ]</span>
-            <span>TOTAL EVENTOS: <?= count($alertas) ?></span>
-        </div>
-        
-        <div class="alert-log-window scroll-styled">
-          <?php if (empty($alertas)): ?>
-            <div style="color:var(--text-muted); text-align:center; padding: 2rem;">>>> NO CRITICAL EVENTS DETECTED. SYSTEM NOMINAL. <<<</div>
-          <?php else: ?>
-            <?php foreach ($alertas as $alerta): ?>
-              <?php $lvlClass = $alerta->nivel_peligro === 'CRITICO' ? 'lvl-critico' : 'lvl-advertencia'; ?>
-              <div class="alert-entry">
-                <span class="a-time">[ <?= date('d/m/Y H:i', strtotime($alerta->fecha_hora)) ?> ]</span>
-                <span class="a-level <?= $lvlClass ?>">// <?= $alerta->nivel_peligro ?> //</span>
-                <span class="a-msg"><?= Html::encode($alerta->mensaje_alerta) ?></span>
-              </div>
-            <?php endforeach; ?>
-          <?php endif; ?>
-        </div>
-      </section>
+      <!-- Alertas enviadas -->
+      <div class="card card-alertas">
+        <div class="card-label">// alertas recientes (últimas 5)</div>
+
+        <?php if (empty($alertas)): ?>
+          <div class="no-alertas">&#10003; Sin alertas registradas</div>
+        <?php else: ?>
+          <?php foreach ($alertas as $alerta): ?>
+            <div class="alerta-item">
+              <span class="badge <?= $alerta->nivel_peligro === 'CRITICO' ? 'badge-critico' : 'badge-advertencia' ?>">
+                <?= $alerta->nivel_peligro ?>
+              </span>
+              <span class="alerta-msg"><?= Html::encode($alerta->mensaje_alerta) ?></span>
+              <span class="alerta-hora"><?= date('d/m H:i', strtotime($alerta->fecha_hora)) ?></span>
+            </div>
+          <?php endforeach; ?>
+        <?php endif; ?>
+      </div>
+
+    </div><!-- /grid-top -->
 
       <?php if (!empty($graficaDatos)): ?>
       <section class="hud-panel full-width-panel">
@@ -453,110 +450,92 @@ function hexToRgb($hex) {
 <?php if (!empty($graficaDatos)): ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const datos = <?= $jsonGrafica ?>;
-  const labels      = datos.map(d => d.hora);
-  
-  const ctx = document.getElementById('chartHud').getContext('2d');
+const datos = <?= $jsonGrafica ?>;
+const labels      = datos.map(d => d.hora);
+const mq135Data   = datos.map(d => d.mq135);
+const tempData    = datos.map(d => d.temperatura);
+const humData     = datos.map(d => d.humedad);
 
-  // Configuración de estilos globales de Chart.js para que coincidan con el HUD
-  Chart.defaults.color = '#6c757d'; // text-muted
-  Chart.defaults.font.family = "'Share Tech Mono', monospace";
-  Chart.defaults.font.size = 11;
+const ctx = document.getElementById('chartLecturas').getContext('2d');
 
-  // Función auxiliar para crear gradientes HUD
-  function createHudGradient(colorStart, colorEnd) {
-      let grad = ctx.createLinearGradient(0, 0, 0, 300);
-      grad.addColorStop(0, colorStart);
-      grad.addColorStop(1, colorEnd);
-      return grad;
-  }
-
-  const datasetConfig = {
-      borderWidth: 2,
-      pointRadius: 3,
-      pointHoverRadius: 6,
-      pointBackgroundColor: '#010204',
-      pointBorderWidth: 2,
-      fill: true,
-      tension: 0.4
-  };
-
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          ...datasetConfig,
-          label: ' MQ135 (ppm)',
-          data: datos.map(d => d.mq135),
-          borderColor: '<?= $estadoColor ?>',
-          backgroundColor: createHudGradient('rgba(<?= hexToRgb($estadoColor) ?>, 0.25)', 'rgba(<?= hexToRgb($estadoColor) ?>, 0)'),
-          pointBorderColor: '<?= $estadoColor ?>',
-          yAxisID: 'y',
-        },
-        {
-          ...datasetConfig,
-          label: ' TEMP (°C)',
-          data: datos.map(d => d.temperatura),
-          borderColor: '#ff9f43', // Neon Orange
-          backgroundColor: createHudGradient('rgba(255, 159, 67, 0.2)', 'rgba(255, 159, 67, 0)'),
-          pointBorderColor: '#ff9f43',
-          yAxisID: 'y1',
-        },
-        {
-          ...datasetConfig,
-          label: ' HUM (%)',
-          data: datos.map(d => d.humedad),
-          borderColor: '#54a0ff', // Neon Blue
-          backgroundColor: createHudGradient('rgba(84, 160, 255, 0.2)', 'rgba(84, 160, 255, 0)'),
-          pointBorderColor: '#54a0ff',
-          yAxisID: 'y1',
-        }
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: {
-          position: 'top',
-          labels: { color: '#e0e6ed', usePointStyle: true, pointStyle: 'rectRot', boxWidth: 10, font: { family: "'Orbitron', sans-serif", size: 12 } }
-        },
-        tooltip: {
-          backgroundColor: 'rgba(10, 12, 16, 0.9)',
-          titleColor: '<?= $estadoColor ?>',
-          titleFont: { family: "'Orbitron', sans-serif" },
-          bodyColor: '#fff',
-          borderColor: 'rgba(255,255,255,0.1)',
-          borderWidth: 1,
-          padding: 15,
-          usePointStyle: true,
-          boxPadding: 8
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [
+      {
+        label: 'MQ135 (ppm)',
+        data: mq135Data,
+        borderColor: '#00b4d8',
+        backgroundColor: '#00b4d822',
+        borderWidth: 2,
+        pointRadius: 3,
+        tension: 0.3,
+        yAxisID: 'y',
+      },
+      {
+        label: 'Temperatura (°C)',
+        data: tempData,
+        borderColor: '#ff6b35',
+        backgroundColor: '#ff6b3522',
+        borderWidth: 2,
+        pointRadius: 3,
+        tension: 0.3,
+        yAxisID: 'y1',
+      },
+      {
+        label: 'Humedad (%)',
+        data: humData,
+        borderColor: '#06d6a0',
+        backgroundColor: '#06d6a022',
+        borderWidth: 2,
+        pointRadius: 3,
+        tension: 0.3,
+        yAxisID: 'y1',
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        labels: {
+          color: '#ccd6f6',
+          font: { family: "'Share Tech Mono', monospace", size: 11 },
         },
       },
-      scales: {
-        x: { 
-            grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
-            ticks: { font: { size: 10 } }
-        },
-        y: {
-          type: 'linear', position: 'left',
-          title: { display: true, text: 'PPM', color: '<?= $estadoColor ?>', font: { family: "'Orbitron', sans-serif", weight: 'bold' } },
-          grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
-          ticks: { color: '<?= $estadoColor ?>' }
-        },
-        y1: {
-          type: 'linear', position: 'right',
-          title: { display: true, text: '°C / %', color: '#ff9f43', font: { family: "'Orbitron', sans-serif", weight: 'bold' } },
-          grid: { drawOnChartArea: false }, // No dibujar líneas de cuadrícula para el segundo eje
-          ticks: { color: '#ff9f43' }
-        },
+      tooltip: {
+        backgroundColor: '#111827',
+        borderColor: '#1e2d40',
+        borderWidth: 1,
+        titleColor: '#00b4d8',
+        bodyColor: '#ccd6f6',
+        titleFont: { family: "'Share Tech Mono', monospace" },
+        bodyFont:  { family: "'Share Tech Mono', monospace" },
       },
     },
-  });
+    scales: {
+      x: {
+        ticks: { color: '#4a5568', font: { family: "'Share Tech Mono', monospace", size: 10 } },
+        grid:  { color: '#1e2d40' },
+      },
+      y: {
+        type: 'linear',
+        position: 'left',
+        title: { display: true, text: 'ppm', color: '#00b4d8', font: { family: "'Share Tech Mono', monospace" } },
+        ticks: { color: '#00b4d8', font: { family: "'Share Tech Mono', monospace", size: 10 } },
+        grid:  { color: '#1e2d40' },
+      },
+      y1: {
+        type: 'linear',
+        position: 'right',
+        title: { display: true, text: '°C / %', color: '#ff6b35', font: { family: "'Share Tech Mono', monospace" } },
+        ticks: { color: '#ff6b35', font: { family: "'Share Tech Mono', monospace", size: 10 } },
+        grid:  { drawOnChartArea: false },
+      },
+    },
+  },
 });
 </script>
 <?php endif; ?>

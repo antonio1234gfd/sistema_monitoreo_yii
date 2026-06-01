@@ -53,6 +53,10 @@ class SensorController extends Controller
         $mq135         = (float) $request->post('mq135');
         $temperatura   = (float) $request->post('temperatura');
         $humedad       = (float) $request->post('humedad');
+        
+        // Capturar mq5 de forma robusta (soportando variantes de nombre)
+        $post          = $request->post();
+        $mq5           = (float) ($post['mq5'] ?? $post['MQ5'] ?? $post['mq_5'] ?? 0);
 
         // Validación básica
         if (!$idDispositivo || !$mq135) {
@@ -64,18 +68,19 @@ class SensorController extends Controller
         }
 
         try {
-            // Llamar al stored procedure
+            // Llamar al stored procedure con el nuevo parámetro mq5
             // El trigger AlertaCalidadAire_MQ135 se ejecuta automáticamente
-            Yii::$app->db->createCommand('CALL RegistrarLecturaESP32(:id, :mq135, :temp, :hum)')
+            Yii::$app->db->createCommand('CALL RegistrarLecturaESP32(:id, :mq135, :temp, :hum, :mq5)')
                 ->bindValue(':id',    $idDispositivo)
                 ->bindValue(':mq135', $mq135)
                 ->bindValue(':temp',  $temperatura)
                 ->bindValue(':hum',   $humedad)
+                ->bindValue(':mq5',   $mq5)
                 ->execute();
 
             Yii::info(
                 "Lectura recibida — Dispositivo: $idDispositivo | "
-                . "MQ135: $mq135 ppm | Temp: $temperatura°C | Hum: $humedad%",
+                . "MQ135: {$mq135} ppm | Temp: {$temperatura} C | Hum: {$humedad}% | MQ5: {$mq5}",
                 'sensor'
             );
 
@@ -85,6 +90,7 @@ class SensorController extends Controller
                 'datos'   => [
                     'id_dispositivo' => $idDispositivo,
                     'mq135'          => $mq135,
+                    'mq5'            => $mq5,
                     'temperatura'    => $temperatura,
                     'humedad'        => $humedad,
                 ],
