@@ -5,7 +5,7 @@
  * Endpoint que recibe los datos del ESP32 por HTTP POST
  * y los guarda en la BD llamando al stored procedure.
  *
- * URL: http://localhost/sistema_mon/cursoyii2026B/advanced/backend/web/sensor/recibir
+ * URL: http://192.168.0.55/sistema_mon/cursoyii2026B/advanced/backend/web/index.php?r=sensor/recibir
  */
 
 namespace backend\controllers;
@@ -38,9 +38,13 @@ class SensorController extends Controller
      *
      * Parámetros POST esperados:
      *   - id_dispositivo (int)
-     *   - mq135          (float) ppm
+     *   - mq135          (float) delta ppm MQ135
+     *   - mq5            (float) delta ppm MQ5
      *   - temperatura    (float) °C
      *   - humedad        (float) %
+     *   - color_led      (string) VERDE | AMARILLO | ROJO
+     *   - buzzer_activo  (int)   0 | 1
+     *   - modo_operacion (string) normal | advertencia | critico
      */
     public function actionRecibir()
     {
@@ -51,8 +55,12 @@ class SensorController extends Controller
         // Leer parámetros del POST
         $idDispositivo = (int)   $request->post('id_dispositivo');
         $mq135         = (float) $request->post('mq135');
-        $temperatura   = (float) $request->post('temperatura');
-        $humedad       = (float) $request->post('humedad');
+        $mq5           = (float) $request->post('mq5',            0);
+        $temperatura   = (float) $request->post('temperatura',    0);
+        $humedad       = (float) $request->post('humedad',        0);
+        $colorLed      =         $request->post('color_led',      'VERDE');
+        $buzzer        = (int)   $request->post('buzzer_activo',  0);
+        $modo          =         $request->post('modo_operacion', 'normal');
 
         // Validación básica
         if (!$idDispositivo || !$mq135) {
@@ -66,16 +74,24 @@ class SensorController extends Controller
         try {
             // Llamar al stored procedure
             // El trigger AlertaCalidadAire_MQ135 se ejecuta automáticamente
-            Yii::$app->db->createCommand('CALL RegistrarLecturaESP32(:id, :mq135, :temp, :hum)')
-                ->bindValue(':id',    $idDispositivo)
-                ->bindValue(':mq135', $mq135)
-                ->bindValue(':temp',  $temperatura)
-                ->bindValue(':hum',   $humedad)
-                ->execute();
+            Yii::$app->db->createCommand(
+                'CALL RegistrarLecturaESP32(:id, :mq135, :mq5, :temp, :hum, :led, :buzzer, :modo)'
+            )
+            ->bindValue(':id',     $idDispositivo)
+            ->bindValue(':mq135',  $mq135)
+            ->bindValue(':mq5',    $mq5)
+            ->bindValue(':temp',   $temperatura)
+            ->bindValue(':hum',    $humedad)
+            ->bindValue(':led',    $colorLed)
+            ->bindValue(':buzzer', $buzzer)
+            ->bindValue(':modo',   $modo)
+            ->execute();
 
             Yii::info(
                 "Lectura recibida — Dispositivo: $idDispositivo | "
-                . "MQ135: $mq135 ppm | Temp: $temperatura°C | Hum: $humedad%",
+                . "MQ135: $mq135 | MQ5: $mq5 | "
+                . "Temp: $temperatura°C | Hum: $humedad% | "
+                . "LED: $colorLed | Buzzer: $buzzer | Modo: $modo",
                 'sensor'
             );
 
@@ -85,8 +101,12 @@ class SensorController extends Controller
                 'datos'   => [
                     'id_dispositivo' => $idDispositivo,
                     'mq135'          => $mq135,
+                    'mq5'            => $mq5,
                     'temperatura'    => $temperatura,
                     'humedad'        => $humedad,
+                    'color_led'      => $colorLed,
+                    'buzzer_activo'  => $buzzer,
+                    'modo_operacion' => $modo,
                 ],
             ];
 

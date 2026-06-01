@@ -10,6 +10,7 @@ use Yii;
  * @property int $id_lectura
  * @property int|null $id_dispositivo
  * @property float|null $mq135_valor
+ * @property float|null $mq5_valor
  * @property float|null $dht22_temperatura
  * @property float|null $dht22_humedad
  * @property string|null $fecha_hora
@@ -34,9 +35,9 @@ class LecturasSensores extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id_dispositivo', 'mq135_valor', 'dht22_temperatura', 'dht22_humedad'], 'default', 'value' => null],
+            [['id_dispositivo', 'mq135_valor', 'mq5_valor', 'dht22_temperatura', 'dht22_humedad'], 'default', 'value' => null],
             [['id_dispositivo'], 'integer'],
-            [['mq135_valor', 'dht22_temperatura', 'dht22_humedad'], 'number'],
+            [['mq135_valor', 'mq5_valor', 'dht22_temperatura', 'dht22_humedad'], 'number'],
             [['fecha_hora'], 'safe'],
             [['id_dispositivo'], 'exist', 'skipOnError' => true, 'targetClass' => Dispositivos::class, 'targetAttribute' => ['id_dispositivo' => 'id_dispositivo']],
         ];
@@ -51,6 +52,7 @@ class LecturasSensores extends \yii\db\ActiveRecord
             'id_lectura' => 'Id Lectura',
             'id_dispositivo' => 'Id Dispositivo',
             'mq135_valor' => 'Mq135 Valor',
+            'mq5_valor' => 'MQ5 (ppm)',
             'dht22_temperatura' => 'Dht22 Temperatura',
             'dht22_humedad' => 'Dht22 Humedad',
             'fecha_hora' => 'Fecha Hora',

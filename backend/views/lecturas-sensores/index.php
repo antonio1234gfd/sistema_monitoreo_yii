@@ -13,13 +13,11 @@ use yii\grid\GridView;
 $this->title = 'Lecturas de sensores';
 $this->params['breadcrumbs'][] = $this->title;
 
-// Estadísticas rápidas
-$total  = $dataProvider->getTotalCount();
+$total = $dataProvider->getTotalCount();
 ?>
 
 <div class="lecturas-sensores-index">
 
-  <!-- Encabezado -->
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
     <h1 class="h4 fw-semibold mb-0">
       <i class="bi bi-activity me-2 text-success"></i>
@@ -32,7 +30,6 @@ $total  = $dataProvider->getTotalCount();
     ) ?>
   </div>
 
-  <!-- Tarjetas de resumen -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
       <div class="p-3 rounded-3" style="background:var(--bs-light);">
@@ -54,13 +51,12 @@ $total  = $dataProvider->getTotalCount();
     </div>
     <div class="col-6 col-md-3">
       <div class="p-3 rounded-3" style="background:var(--bs-light);">
-        <div class="text-muted small mb-1">Umbrales</div>
-        <div class="fw-semibold fs-5">700 / 1000 ppm</div>
+        <div class="text-muted small mb-1">Umbrales MQ5</div>
+        <div class="fw-semibold fs-5">120 / 300 ppm</div>
       </div>
     </div>
   </div>
 
-  <!-- Tabla -->
   <div class="card border-0 shadow-sm" style="border-radius:16px; overflow:hidden;">
     <?= GridView::widget([
       'dataProvider' => $dataProvider,
@@ -86,6 +82,7 @@ $total  = $dataProvider->getTotalCount();
           'value'          => fn($m) => '#' . $m->id_dispositivo,
         ],
 
+        // ── MQ135 ──────────────────────────────────────────
         [
           'attribute'     => 'mq135_valor',
           'label'         => 'MQ135 (ppm)',
@@ -93,13 +90,33 @@ $total  = $dataProvider->getTotalCount();
           'format'        => 'raw',
           'value'         => function ($m) {
             $v = $m->mq135_valor;
-            if ($v >= 1000)     [$bg, $tc, $bc] = ['#FCEBEB','#791F1F','#F09595'];
-            elseif ($v >= 700)  [$bg, $tc, $bc] = ['#FAEEDA','#633806','#EF9F27'];
-            else                [$bg, $tc, $bc] = ['#EAF3DE','#27500A','#97C459'];
-            return "<span class='badge rounded-pill fw-normal' style='background:{$bg};color:{$tc};border:0.5px solid {$bc};font-size:11px;'>{$v} ppm</span>";
+            if ($v >= 1000)     [$bg,$tc,$bc] = ['#FCEBEB','#791F1F','#F09595'];
+            elseif ($v >= 700)  [$bg,$tc,$bc] = ['#FAEEDA','#633806','#EF9F27'];
+            else                [$bg,$tc,$bc] = ['#EAF3DE','#27500A','#97C459'];
+            return "<span class='badge rounded-pill fw-normal'
+              style='background:{$bg};color:{$tc};border:0.5px solid {$bc};font-size:11px;'>
+              {$v} ppm</span>";
           },
         ],
 
+        // ── MQ5 (nuevo) ────────────────────────────────────
+        [
+          'attribute'     => 'mq5_valor',
+          'label'         => 'MQ5 (ppm)',
+          'headerOptions' => ['class' => 'text-muted small fw-normal'],
+          'format'        => 'raw',
+          'value'         => function ($m) {
+            $v = $m->mq5_valor ?? 0;
+            if ($v >= 300)      [$bg,$tc,$bc] = ['#FCEBEB','#791F1F','#F09595'];
+            elseif ($v >= 120)  [$bg,$tc,$bc] = ['#FAEEDA','#633806','#EF9F27'];
+            else                [$bg,$tc,$bc] = ['#EAF3DE','#27500A','#97C459'];
+            return "<span class='badge rounded-pill fw-normal'
+              style='background:{$bg};color:{$tc};border:0.5px solid {$bc};font-size:11px;'>
+              {$v} ppm</span>";
+          },
+        ],
+
+        // ── Temperatura ────────────────────────────────────
         [
           'attribute'     => 'dht22_temperatura',
           'label'         => 'Temperatura',
@@ -118,21 +135,24 @@ $total  = $dataProvider->getTotalCount();
           },
         ],
 
+        // ── Humedad ────────────────────────────────────────
         [
-          'attribute'     => 'dht22_humedad',
-          'label'         => 'Humedad',
-          'headerOptions' => ['class' => 'text-muted small fw-normal'],
-          'value'         => fn($m) => round($m->dht22_humedad, 1) . ' %',
-          'contentOptions'=> ['style' => 'font-size:12px;'],
+          'attribute'      => 'dht22_humedad',
+          'label'          => 'Humedad',
+          'headerOptions'  => ['class' => 'text-muted small fw-normal'],
+          'value'          => fn($m) => round($m->dht22_humedad, 1) . ' %',
+          'contentOptions' => ['style' => 'font-size:12px;'],
         ],
 
+        // ── Fecha ──────────────────────────────────────────
         [
-          'attribute'     => 'fecha_hora',
-          'label'         => 'Fecha y hora',
-          'headerOptions' => ['class' => 'text-muted small fw-normal'],
-          'contentOptions'=> ['class' => 'font-monospace text-muted small'],
+          'attribute'      => 'fecha_hora',
+          'label'          => 'Fecha y hora',
+          'headerOptions'  => ['class' => 'text-muted small fw-normal'],
+          'contentOptions' => ['class' => 'font-monospace text-muted small'],
         ],
 
+        // ── Acciones ───────────────────────────────────────
         [
           'class'      => ActionColumn::class,
           'header'     => '',

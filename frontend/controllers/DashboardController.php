@@ -83,6 +83,7 @@ class DashboardController extends Controller
                 $graficaDatos[] = [
                     'hora'        => date('H:i', strtotime($l->fecha_hora)),
                     'mq135'       => (float) $l->mq135_valor,
+                    'mq5'         => (float) ($l->mq5_valor ?? 0), // ← nuevo
                     'temperatura' => (float) $l->dht22_temperatura,
                     'humedad'     => (float) $l->dht22_humedad,
                 ];
