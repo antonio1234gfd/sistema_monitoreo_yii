@@ -294,9 +294,9 @@ $jsonGrafica = json_encode($graficaDatos);
         <?php if ($ultimaLectura && $ultimaLectura->mq135_valor !== null): ?>
           <?php $ppm = (float)$ultimaLectura->mq135_valor; ?>
           <div class="card-ts">
-            <?php if ($ppm < 700): ?>
+            <?php if ($ppm < $umbrales['mq135_amarillo']): ?>
               <span style="color:#00e676">&#9679; Aire limpio</span>
-            <?php elseif ($ppm < 1000): ?>
+            <?php elseif ($ppm < $umbrales['mq135_rojo']): ?>
               <span style="color:#ffea00">&#9679; Aire viciado</span>
             <?php else: ?>
               <span style="color:#ff1744">&#9679; Contaminación crítica</span>
@@ -338,7 +338,7 @@ $jsonGrafica = json_encode($graficaDatos);
         <div class="card-label">// alertas recientes (últimas 5)</div>
 
         <?php 
-        $hayAlertaMQ5 = $ultimaLectura && $ultimaLectura->mq5_valor > 300;
+        $hayAlertaMQ5 = $ultimaLectura && $ultimaLectura->mq5_valor > $umbrales['mq5_fuga'];
         if (empty($alertas) && !$hayAlertaMQ5): 
         ?>
           <div class="no-alertas">&#10003; Sin alertas registradas</div>

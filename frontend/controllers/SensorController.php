@@ -131,18 +131,20 @@ class SensorController extends Controller
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-        $mq5   = UmbralesConfiguracion::find()->where(['parametro' => 'conf_mq5'])->one();
-        $mq135 = UmbralesConfiguracion::find()->where(['parametro' => 'conf_mq135'])->one();
+        $amarillo = UmbralesConfiguracion::find()->where(['parametro' => 'mq135_amarillo'])->one();
+        $rojo     = UmbralesConfiguracion::find()->where(['parametro' => 'mq135_rojo'])->one();
+        $fuga     = UmbralesConfiguracion::find()->where(['parametro' => 'mq5_fuga'])->one();
 
-        if (!$mq5 || !$mq135) {
+        if (!$amarillo || !$rojo || !$fuga) {
             Yii::$app->response->statusCode = 404;
             return ['ok' => false, 'error' => 'Umbrales no encontrados en la base de datos'];
         }
 
         return [
-            'ok'    => true,
-            'mq5'   => (float) $mq5->valor_limite,
-            'mq135' => (float) $mq135->valor_limite,
+            'ok'             => true,
+            'mq135_amarillo' => (float) $amarillo->valor_limite,
+            'mq135_rojo'     => (float) $rojo->valor_limite,
+            'mq5_fuga'       => (float) $fuga->valor_limite,
         ];
     }
 

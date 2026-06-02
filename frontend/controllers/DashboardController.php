@@ -14,6 +14,7 @@ use common\models\Dispositivos;
 use common\models\LecturasSensores;
 use common\models\AlertasHistorial;
 use common\models\EstadoActuadores;
+use common\models\UmbralesConfiguracion;
 
 class DashboardController extends Controller
 {
@@ -89,12 +90,26 @@ class DashboardController extends Controller
             }
         }
 
+        // Cargar umbrales dinámicos desde la BD (con fallback si no existen)
+        $umbrales = [
+            'mq135_amarillo' => 3100.0,
+            'mq135_rojo'     => 3500.0,
+            'mq5_fuga'       => 1200.0,
+        ];
+        $filas = UmbralesConfiguracion::find()
+            ->where(['parametro' => ['mq135_amarillo', 'mq135_rojo', 'mq5_fuga']])
+            ->all();
+        foreach ($filas as $row) {
+            $umbrales[$row->parametro] = (float) $row->valor_limite;
+        }
+
         return $this->render('index', [
             'dispositivo'   => $dispositivo,
             'ultimaLectura' => $ultimaLectura,
             'estadoActuador'=> $estadoActuador,
             'alertas'       => $alertas,
             'graficaDatos'  => $graficaDatos,
+            'umbrales'      => $umbrales,
         ]);
     }
 }
