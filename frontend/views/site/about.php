@@ -180,15 +180,15 @@ $this->params['breadcrumbs'][] = $this->title;
             <div class="sensor-item">
                 <div class="sensor-icon">&#127788;</div>
                 <div>
-                    <div class="sensor-name">MQ-135</div>
-                    <div class="sensor-desc">Calidad del aire — CO₂ y gases (ppm)</div>
+                    <div class="sensor-name">MQ-5</div>
+                    <div class="sensor-desc">Calidad del aire — CO₂</div>
                 </div>
             </div>
             <div class="sensor-item">
-                <div class="sensor-icon">&#127777;</div>
+                <div class="sensor-icon">&#127788;</div>
                 <div>
-                    <div class="sensor-name">DHT-22</div>
-                    <div class="sensor-desc">Temperatura (°C) y Humedad relativa (%)</div>
+                    <div class="sensor-name">MQ-135</div>
+                    <div class="sensor-desc">Gases - Butano, Propano</div>
                 </div>
             </div>
         </div>
@@ -200,15 +200,15 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="led-grid">
             <div class="led-item">
                 <div class="led-dot led-verde"></div>
-                <span><strong>Verde</strong> — Aire limpio (menor a 700 ppm)</span>
+                <span><strong>Verde</strong> — Aire limpio</span>
             </div>
             <div class="led-item">
                 <div class="led-dot led-amarillo"></div>
-                <span><strong>Amarillo</strong> — Aire viciado (700 – 999 ppm)</span>
+                <span><strong>Amarillo</strong> — Aire viciado</span>
             </div>
             <div class="led-item">
                 <div class="led-dot led-rojo"></div>
-                <span><strong>Rojo</strong> — Contaminación crítica (1000+ ppm) + Buzzer</span>
+                <span><strong>Rojo</strong> — Contaminación crítica + Buzzer</span>
             </div>
         </div>
     </div>
@@ -232,15 +232,9 @@ $this->params['breadcrumbs'][] = $this->title;
         <ul>
             <li>Backend & Frontend: PHP 8 + Yii2 Advanced Framework</li>
             <li>Base de datos: MySQL 8 con triggers y stored procedures</li>
-            <li>Hardware: ESP32 con sensores MQ135 y DHT22</li>
+            <li>Hardware: ESP32 con sensores MQ5 y MQ135</li>
             <li>Gráficas: Chart.js</li>
             <li>UI: Bootstrap 5</li>
         </ul>
     </div>
-
-    <!-- Firma -->
-    <div class="about-firma">
-        DESARROLLADO POR: ING. ANGEL MANRIQUE CASANOVA &nbsp;|&nbsp; 2026
-    </div>
-
 </div>

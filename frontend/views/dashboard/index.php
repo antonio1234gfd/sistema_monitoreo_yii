@@ -25,26 +25,30 @@ $jsonGrafica = json_encode($graficaDatos);
 ?>
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
   :root {
-    --bg:        #0a0e1a;
-    --panel:     #111827;
-    --border:    #1e2d40;
-    --accent:    #00b4d8;
-    --accent2:   #0077b6;
-    --text:      #ccd6f6;
-    --muted:     #4a5568;
-    --mono:      'Share Tech Mono', monospace;
-    --sans:      'Rajdhani', sans-serif;
+    --bg:        #f4f7f6; /* Fondo gris muy claro y fresco */
+    --panel:     #ffffff; /* Tarjetas blancas */
+    --border:    #e2e8f0; /* Bordes muy suaves */
+    --accent:    #3b82f6; /* Azul principal amigable */
+    --accent-hover: #2563eb;
+    --text:      #1e293b; /* Texto oscuro suave (no negro puro) */
+    --muted:     #64748b; /* Texto secundario gris */
+    --font-main: 'Nunito', sans-serif;
   }
 
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); }
+  body { 
+    background: var(--bg); 
+    color: var(--text); 
+    font-family: var(--font-main); 
+    margin: 0;
+  }
 
   .dash-wrap {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem 1.5rem;
+    padding: 2.5rem 1.5rem;
   }
 
   /* ── Header ── */
@@ -52,205 +56,225 @@ $jsonGrafica = json_encode($graficaDatos);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 2rem;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 1rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px dashed var(--border);
+    flex-wrap: wrap;
+    gap: 1rem;
   }
   .dash-header h1 {
-    font-family: var(--sans);
-    font-weight: 700;
-    font-size: 1.6rem;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--accent);
+    font-weight: 800;
+    font-size: 1.8rem;
+    color: var(--text);
     margin: 0;
   }
   .dash-header .sub {
-    font-family: var(--mono);
-    font-size: 0.72rem;
+    font-size: 0.85rem;
     color: var(--muted);
-    letter-spacing: 2px;
-    margin-top: 4px;
+    margin-top: 6px;
+    font-weight: 600;
   }
+  .dash-header .sub span { font-weight: 700; }
+
+  /* Botón con estilo "Píldora" */
   .btn-refresh {
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    letter-spacing: 2px;
-    padding: 0.55rem 1.4rem;
-    border: 1px solid var(--accent);
-    background: transparent;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.5rem;
+    border-radius: 999px; /* Bordes totalmente redondeados */
+    background: #ffffff;
     color: var(--accent);
+    border: 2px solid var(--accent);
     cursor: pointer;
-    transition: all .2s;
+    transition: all 0.2s ease;
     text-decoration: none;
     display: inline-block;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);
   }
   .btn-refresh:hover {
     background: var(--accent);
-    color: var(--bg);
-    text-decoration: none;
+    color: #ffffff;
+    box-shadow: 0 6px 12px rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px);
+  }
+  .btn-refresh:active {
+    transform: translateY(0);
   }
 
   /* ── Sin dispositivo ── */
   .no-device {
     text-align: center;
     padding: 4rem 2rem;
-    font-family: var(--mono);
     color: var(--muted);
-    border: 1px dashed var(--border);
+    background: var(--panel);
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
   }
 
   /* ── Grid principal ── */
   .grid-top {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.2rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
     margin-bottom: 1.5rem;
   }
 
-  /* ── Panel / Card ── */
+  /* ── Panel / Card Amigable ── */
   .card {
     background: var(--panel);
-    border: 1px solid var(--border);
-    padding: 1.4rem 1.6rem;
-    position: relative;
-    overflow: hidden;
+    border-radius: 16px; /* Bordes curvos amigables */
+    padding: 1.8rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); /* Sombra muy suave */
+    border: 1px solid rgba(0,0,0,0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 3px; height: 100%;
-    background: var(--accent);
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
   }
   .card-label {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    letter-spacing: 3px;
+    font-size: 0.8rem;
+    font-weight: 700;
     color: var(--muted);
     text-transform: uppercase;
-    margin-bottom: 0.6rem;
+    letter-spacing: 1px;
+    margin-bottom: 0.8rem;
   }
   .card-value {
-    font-family: var(--mono);
-    font-size: 2.4rem;
-    font-weight: bold;
-    color: #e2e8f0;
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--accent);
     line-height: 1;
+    margin-bottom: 0.5rem;
   }
   .card-unit {
-    font-size: 0.9rem;
+    font-size: 1rem;
+    font-weight: 600;
     color: var(--muted);
-    margin-left: 4px;
   }
   .card-ts {
-    font-family: var(--mono);
-    font-size: 0.62rem;
+    font-size: 0.8rem;
     color: var(--muted);
-    margin-top: 0.5rem;
+    font-weight: 600;
   }
 
   /* ── Card LED ── */
   .card-led {
-    border-color: <?= $ledInfo['bg'] ?>;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.6rem;
+    justify-content: center;
+    gap: 1rem;
   }
-  .card-led::before { background: <?= $ledInfo['bg'] ?>; }
-
-  .led-orb-wrap { display: flex; align-items: center; gap: 1rem; }
+  .led-orb-wrap { display: flex; align-items: center; gap: 1.2rem; }
 
   .led-orb {
-    width: 52px; height: 52px;
+    width: 60px; height: 60px;
     border-radius: 50%;
     background: <?= $ledInfo['bg'] ?>;
-    box-shadow: 0 0 18px 6px <?= $ledInfo['bg'] ?>88;
+    box-shadow: 0 8px 20px <?= $ledInfo['bg'] ?>66, inset 0 -4px 8px rgba(0,0,0,0.1);
+    flex-shrink: 0;
     <?php if ($ledActual === 'ROJO'): ?>
-    animation: pulse-led 1s ease-in-out infinite;
+    animation: pulse-led 1.5s ease-in-out infinite;
     <?php endif; ?>
   }
   @keyframes pulse-led {
-    0%, 100% { box-shadow: 0 0 18px 6px #ff174488; }
-    50%       { box-shadow: 0 0 32px 14px #ff174488; }
+    0%, 100% { box-shadow: 0 8px 20px #ff174466; transform: scale(1); }
+    50%      { box-shadow: 0 12px 30px #ff174488; transform: scale(1.05); }
   }
 
   .led-info .led-estado {
-    font-family: var(--sans);
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: <?= $ledInfo['bg'] ?>;
-    letter-spacing: 2px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text);
   }
   .led-info .led-buzzer {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    letter-spacing: 2px;
+    font-size: 0.8rem;
+    font-weight: 700;
     color: var(--muted);
-    margin-top: 2px;
+    margin-top: 4px;
+    padding: 2px 8px;
+    background: var(--bg);
+    border-radius: 8px;
+    display: inline-block;
   }
-  .led-info .led-buzzer.on { color: #ff1744; }
+  .led-info .led-buzzer.on { 
+    color: #ff1744; 
+    background: #ffebee;
+  }
 
   /* ── Alertas ── */
-  .card-alertas { grid-column: span 2; }
-  @media (max-width: 768px) { .card-alertas { grid-column: span 1; } }
+  .card-alertas { 
+    grid-column: span 2; 
+    max-height: 280px; 
+    overflow-y: auto;
+    padding-right: 1rem;
+  }
+  
+  /* Scrollbar amigable */
+  .card-alertas::-webkit-scrollbar { width: 8px; }
+  .card-alertas::-webkit-scrollbar-track { background: var(--bg); border-radius: 10px; }
+  .card-alertas::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+  .card-alertas::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
   .alerta-item {
     display: flex;
-    align-items: flex-start;
-    gap: 0.8rem;
-    padding: 0.6rem 0;
-    border-bottom: 1px solid var(--border);
-    font-family: var(--mono);
-    font-size: 0.75rem;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem;
+    margin-bottom: 0.5rem;
+    background: var(--bg);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
   }
-  .alerta-item:last-child { border-bottom: none; }
 
   .badge {
-    padding: 2px 8px;
-    font-size: 0.62rem;
-    letter-spacing: 1.5px;
-    font-weight: bold;
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    border-radius: 6px;
     white-space: nowrap;
-    flex-shrink: 0;
   }
-  .badge-critico     { background: #ff174422; color: #ff1744; border: 1px solid #ff174466; }
-  .badge-advertencia { background: #ffea0022; color: #ffea00; border: 1px solid #ffea0066; }
+  .badge-critico     { background: #fee2e2; color: #ef4444; }
+  .badge-advertencia { background: #fef9c3; color: #eab308; }
 
-  .alerta-msg  { color: var(--text); line-height: 1.4; }
-  .alerta-hora { color: var(--muted); font-size: 0.62rem; white-space: nowrap; flex-shrink: 0; margin-left: auto; }
+  .alerta-msg  { color: var(--text); flex-grow: 1; }
+  .alerta-hora { color: var(--muted); font-size: 0.75rem; white-space: nowrap; }
 
   .no-alertas {
-    font-family: var(--mono);
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     color: var(--muted);
-    padding: 0.5rem 0;
+    font-weight: 600;
+    padding: 1rem 0;
   }
 
   /* ── Gráfica ── */
   .card-chart {
     margin-top: 1.5rem;
-    padding: 1.6rem;
   }
   .chart-title {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    letter-spacing: 3px;
+    font-size: 0.9rem;
+    font-weight: 700;
     color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
   }
-  canvas { max-height: 260px; }
+  canvas { max-height: 300px; width: 100% !important; }
 
   /* ── Timestamp global ── */
   .ts-global {
-    text-align: right;
-    font-family: var(--mono);
-    font-size: 0.65rem;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
     color: var(--muted);
-    margin-top: 1.5rem;
-    letter-spacing: 1.5px;
+    margin-top: 2rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) { 
+    .card-alertas { grid-column: span 1; }
+    .alerta-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    .alerta-hora { align-self: flex-end; }
+    .dash-header { justify-content: center; text-align: center; }
   }
 </style>
 
