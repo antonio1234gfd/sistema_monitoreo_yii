@@ -95,11 +95,11 @@ class SensorController extends Controller
             return ['ok' => false, 'error' => $lectura->errors];
         }
 
-        $this->generarAlertaSiNecesario(
+        /* $this->generarAlertaSiNecesario(
             (int)$post['id_dispositivo'],
             (float)$post['mq135'],
             (float)($post['mq5'] ?? 0)
-        );
+        ); */
 
         return ['ok' => true, 'id' => $lectura->id_lectura];
     }
@@ -148,7 +148,7 @@ class SensorController extends Controller
         ];
     }
 
-    private function generarAlertaSiNecesario(int $idDispositivo, float $ppm, float $mq5 = 0.0)
+    /* private function generarAlertaSiNecesario(int $idDispositivo, float $ppm, float $mq5 = 0.0)
     {
         $alertasPendientes = [];
 
@@ -188,5 +188,5 @@ class SensorController extends Controller
             $alerta->leida_por_usuario = 0;
             $alerta->save();
         }
-    }
+    } */
 }
