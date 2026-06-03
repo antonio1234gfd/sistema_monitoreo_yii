@@ -3,6 +3,9 @@
 namespace backend\controllers;
 
 use common\models\LoginForm;
+use common\models\Dispositivos;
+use common\models\LecturasSensores;
+use common\models\AlertasHistorial;
 use Yii;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
@@ -14,9 +17,6 @@ use common\models\PermisosHelpers;
  */
 class SiteController extends Controller
 {
-    /**
-     * behaviors corregido para SiteController
-     */
     public function behaviors()
     {
         return [
@@ -24,30 +24,27 @@ class SiteController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        // Permitimos login y error a todos (invitados)
                         'actions' => ['login', 'error'],
-                        'allow' => true,
+                        'allow'   => true,
                     ],
                     [
-                        // El Index solo para Admin Activos
                         'actions' => ['index'],
-                        'allow' => true,
-                        'roles' => ['@'],
+                        'allow'   => true,
+                        'roles'   => ['@'],
                         'matchCallback' => function ($rule, $action) {
-                            return PermisosHelpers::requerirMinimoRol('Admin') 
+                            return PermisosHelpers::requerirMinimoRol('Admin')
                                 && PermisosHelpers::requerirEstado('Activo');
                         }
                     ],
                     [
-                        // Logout para cualquier usuario logueado
                         'actions' => ['logout'],
-                        'allow' => true,
-                        'roles' => ['@'],
+                        'allow'   => true,
+                        'roles'   => ['@'],
                     ],
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class'   => VerbFilter::className(),
                 'actions' => [
                     'logout' => ['post'],
                 ],
@@ -55,29 +52,68 @@ class SiteController extends Controller
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function actions()
     {
         return [
-            'error' => [
-                'class' => 'yii\web\ErrorAction',
-            ],
+            'error' => ['class' => 'yii\web\ErrorAction'],
         ];
     }
 
     /**
-     * Displays homepage.
+     * Displays homepage con datos reales.
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        // Filtro de período desde query param (?periodo=semana|global)
+        $periodo = Yii::$app->request->get('periodo', 'hoy');
+
+        // ── Dispositivos ──────────────────────────────────────────
+        $totalDispositivos = Dispositivos::find()->count();
+
+        // ── Lecturas según período ─────────────────────────────────
+        $queryLecturas = LecturasSensores::find();
+        switch ($periodo) {
+            case 'semana':
+                $desde = date('Y-m-d 00:00:00', strtotime('-6 days'));
+                $queryLecturas->where(['>=', 'fecha_hora', $desde]);
+                break;
+            case 'global':
+                // Sin filtro de fecha
+                break;
+            default: // hoy
+                $queryLecturas->where(['>=', 'fecha_hora', date('Y-m-d 00:00:00')]);
+                break;
+        }
+        $totalLecturas = $queryLecturas->count();
+
+        // ── Alertas pendientes (sin leer) ─────────────────────────
+        $alertasPendientes = AlertasHistorial::find()
+            ->where(['leida_por_usuario' => 0])
+            ->count();
+
+        // ── Alertas según período ──────────────────────────────────
+        $queryAlertas = AlertasHistorial::find();
+        switch ($periodo) {
+            case 'semana':
+                $queryAlertas->where(['>=', 'fecha_hora', date('Y-m-d 00:00:00', strtotime('-6 days'))]);
+                break;
+            case 'global':
+                break;
+            default:
+                $queryAlertas->where(['>=', 'fecha_hora', date('Y-m-d 00:00:00')]);
+                break;
+        }
+        $totalAlertas = $queryAlertas->count();
+
+        return $this->render('index', [
+            'periodo'           => $periodo,
+            'totalDispositivos' => $totalDispositivos,
+            'totalLecturas'     => $totalLecturas,
+            'alertasPendientes' => $alertasPendientes,
+            'totalAlertas'      => $totalAlertas,
+        ]);
     }
 
-    /**
-     * Login action.
-     */
     public function actionLogin()
     {
         if (!Yii::$app->user->isGuest) {
@@ -92,14 +128,9 @@ class SiteController extends Controller
         }
 
         $model->password = '';
-        return $this->render('login', [
-            'model' => $model,
-        ]);
+        return $this->render('login', ['model' => $model]);
     }
 
-    /**
-     * Logout action.
-     */
     public function actionLogout()
     {
         Yii::$app->user->logout();
