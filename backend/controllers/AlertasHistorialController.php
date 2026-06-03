@@ -24,7 +24,9 @@ class AlertasHistorialController extends Controller
                 'verbs' => [
                     'class' => VerbFilter::className(),
                     'actions' => [
-                        'delete' => ['POST'],
+                        'delete'              => ['POST'],
+                        'marcar-leida'        => ['POST'],
+                        'marcar-todas-leidas' => ['POST'],
                     ],
                 ],
             ]
@@ -33,25 +35,20 @@ class AlertasHistorialController extends Controller
 
     /**
      * Lists all AlertasHistorial models.
-     *
-     * @return string
      */
     public function actionIndex()
     {
-        $searchModel = new AlertasHistorialSearch();
+        $searchModel  = new AlertasHistorialSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
 
         return $this->render('index', [
-            'searchModel' => $searchModel,
+            'searchModel'  => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
     }
 
     /**
      * Displays a single AlertasHistorial model.
-     * @param int $id_alerta Id Alerta
-     * @return string
-     * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionView($id_alerta)
     {
@@ -62,8 +59,6 @@ class AlertasHistorialController extends Controller
 
     /**
      * Creates a new AlertasHistorial model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
      */
     public function actionCreate()
     {
@@ -84,10 +79,6 @@ class AlertasHistorialController extends Controller
 
     /**
      * Updates an existing AlertasHistorial model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param int $id_alerta Id Alerta
-     * @return string|\yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionUpdate($id_alerta)
     {
@@ -104,10 +95,6 @@ class AlertasHistorialController extends Controller
 
     /**
      * Deletes an existing AlertasHistorial model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param int $id_alerta Id Alerta
-     * @return \yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionDelete($id_alerta)
     {
@@ -117,11 +104,83 @@ class AlertasHistorialController extends Controller
     }
 
     /**
+     * Marca una alerta como leída y apaga el buzzer del dispositivo.
+     */
+    public function actionMarcarLeida($id_alerta)
+    {
+        $alerta = $this->findModel($id_alerta);
+
+        if (!$alerta->leida_por_usuario) {
+            $alerta->leida_por_usuario = 1;
+            $alerta->save(false);
+
+            // Apagar buzzer del dispositivo
+            if ($alerta->id_dispositivo) {
+                \Yii::$app->db->createCommand('
+                    UPDATE estado_actuadores
+                    SET    buzzer_activo  = 0,
+                           modo_operacion = :modo
+                    WHERE  id_dispositivo = :id
+                ', [
+                    ':id'   => $alerta->id_dispositivo,
+                    ':modo' => 'MANUAL',
+                ])->execute();
+            }
+
+            \Yii::$app->session->setFlash('success', 'Alerta #' . $id_alerta . ' marcada como leída y buzzer apagado.');
+        } else {
+            \Yii::$app->session->setFlash('info', 'Esta alerta ya había sido leída.');
+        }
+
+        return $this->redirect(['index']);
+    }
+
+    /**
+     * Marca TODAS las alertas pendientes como leídas y apaga todos los buzzers.
+     */
+    public function actionMarcarTodasLeidas()
+    {
+        $pendientes = AlertasHistorial::find()
+            ->where(['leida_por_usuario' => 0])
+            ->all();
+
+        if (empty($pendientes)) {
+            \Yii::$app->session->setFlash('info', 'No hay alertas pendientes.');
+            return $this->redirect(['index']);
+        }
+
+        $dispositivosAfectados = [];
+
+        foreach ($pendientes as $alerta) {
+            $alerta->leida_por_usuario = 1;
+            $alerta->save(false);
+
+            if ($alerta->id_dispositivo) {
+                $dispositivosAfectados[] = $alerta->id_dispositivo;
+            }
+        }
+
+        // Apagar buzzer de cada dispositivo único afectado
+        foreach (array_unique($dispositivosAfectados) as $idDisp) {
+            \Yii::$app->db->createCommand('
+                UPDATE estado_actuadores
+                SET    buzzer_activo  = 0,
+                       modo_operacion = :modo
+                WHERE  id_dispositivo = :id
+            ', [
+                ':id'   => $idDisp,
+                ':modo' => 'MANUAL',
+            ])->execute();
+        }
+
+        $total = count($pendientes);
+        \Yii::$app->session->setFlash('success', "{$total} alerta(s) marcadas como leídas y buzzers apagados.");
+
+        return $this->redirect(['index']);
+    }
+
+    /**
      * Finds the AlertasHistorial model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param int $id_alerta Id Alerta
-     * @return AlertasHistorial the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id_alerta)
     {

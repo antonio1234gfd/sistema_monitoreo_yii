@@ -55,12 +55,21 @@ class SensorController extends Controller
         // Leer parámetros del POST
         $idDispositivo = (int)   $request->post('id_dispositivo');
         $mq135         = (float) $request->post('mq135');
+<<<<<<< HEAD
         $mq5           = (float) $request->post('mq5',            0);
         $temperatura   = (float) $request->post('temperatura',    0);
         $humedad       = (float) $request->post('humedad',        0);
         $colorLed      =         $request->post('color_led',      'VERDE');
         $buzzer        = (int)   $request->post('buzzer_activo',  0);
         $modo          =         $request->post('modo_operacion', 'normal');
+=======
+        $temperatura   = (float) $request->post('temperatura');
+        $humedad       = (float) $request->post('humedad');
+        
+        // Capturar mq5 de forma robusta (soportando variantes de nombre)
+        $post          = $request->post();
+        $mq5           = (float) ($post['mq5'] ?? $post['MQ5'] ?? $post['mq_5'] ?? 0);
+>>>>>>> 00467aac7ae195a56688a727e76598912f167e9c
 
         // Validación básica
         if (!$idDispositivo || !$mq135) {
@@ -72,8 +81,9 @@ class SensorController extends Controller
         }
 
         try {
-            // Llamar al stored procedure
+            // Llamar al stored procedure con el nuevo parámetro mq5
             // El trigger AlertaCalidadAire_MQ135 se ejecuta automáticamente
+<<<<<<< HEAD
             Yii::$app->db->createCommand(
                 'CALL RegistrarLecturaESP32(:id, :mq135, :mq5, :temp, :hum, :led, :buzzer, :modo)'
             )
@@ -92,6 +102,19 @@ class SensorController extends Controller
                 . "MQ135: $mq135 | MQ5: $mq5 | "
                 . "Temp: $temperatura°C | Hum: $humedad% | "
                 . "LED: $colorLed | Buzzer: $buzzer | Modo: $modo",
+=======
+            Yii::$app->db->createCommand('CALL RegistrarLecturaESP32(:id, :mq135, :temp, :hum, :mq5)')
+                ->bindValue(':id',    $idDispositivo)
+                ->bindValue(':mq135', $mq135)
+                ->bindValue(':temp',  $temperatura)
+                ->bindValue(':hum',   $humedad)
+                ->bindValue(':mq5',   $mq5)
+                ->execute();
+
+            Yii::info(
+                "Lectura recibida — Dispositivo: $idDispositivo | "
+                . "MQ135: {$mq135} ppm | Temp: {$temperatura} C | Hum: {$humedad}% | MQ5: {$mq5}",
+>>>>>>> 00467aac7ae195a56688a727e76598912f167e9c
                 'sensor'
             );
 

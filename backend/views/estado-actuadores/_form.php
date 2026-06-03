@@ -12,18 +12,33 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'id_dispositivo')->textInput() ?>
+    <?= $form->field($model, 'id_dispositivo')->textInput([
+        'placeholder' => 'Ej: 1',
+    ]) ?>
 
-    <?= $form->field($model, 'color_led')->dropDownList([ 'VERDE' => 'VERDE', 'AMARILLO' => 'AMARILLO', 'ROJO' => 'ROJO', ], ['prompt' => '']) ?>
+    <?= $form->field($model, 'color_led')->dropDownList([
+        'VERDE'    => 'VERDE',
+        'AMARILLO' => 'AMARILLO',
+        'ROJO'     => 'ROJO',
+    ], ['prompt' => '-- Selecciona color --']) ?>
 
-    <?= $form->field($model, 'buzzer_activo')->textInput() ?>
+    <?= $form->field($model, 'buzzer_activo')->dropDownList([
+        0 => 'Inactivo',
+        1 => 'Activo',
+    ], ['prompt' => '-- Selecciona estado --']) ?>
 
-    <?= $form->field($model, 'modo_operacion')->dropDownList([ 'AUTOMATICO' => 'AUTOMATICO', 'MANUAL' => 'MANUAL', ], ['prompt' => '']) ?>
+    <?= $form->field($model, 'modo_operacion')->dropDownList([
+        'AUTOMATICO' => 'AUTOMÁTICO',
+        'MANUAL'     => 'MANUAL',
+    ], ['prompt' => '-- Selecciona modo --']) ?>
 
-    <?= $form->field($model, 'ultima_actualizacion')->textInput() ?>
+    
 
-    <div class="form-group">
-        <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
+    <div class="form-group mt-3">
+        <?= Html::submitButton(
+            $model->isNewRecord ? 'Crear registro' : 'Guardar cambios',
+            ['class' => 'btn btn-success']
+        ) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

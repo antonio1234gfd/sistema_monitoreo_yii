@@ -14,6 +14,7 @@ use common\models\Dispositivos;
 use common\models\LecturasSensores;
 use common\models\AlertasHistorial;
 use common\models\EstadoActuadores;
+use common\models\UmbralesConfiguracion;
 
 class DashboardController extends Controller
 {
@@ -46,10 +47,10 @@ class DashboardController extends Controller
             ->where(['user_id' => $userId])
             ->one();
 
-        $ultimaLectura    = null;
-        $estadoActuador   = null;
-        $alertas          = [];
-        $graficaDatos     = [];
+        $ultimaLectura  = null;
+        $estadoActuador = null;
+        $alertas        = [];
+        $graficaDatos   = [];
 
         if ($dispositivo) {
             $idDisp = $dispositivo->id_dispositivo;
@@ -65,14 +66,14 @@ class DashboardController extends Controller
                 ->where(['id_dispositivo' => $idDisp])
                 ->one();
 
-            // Últimas 5 alertas (solo lectura, solo saber si se enviaron)
+            // Últimas 5 alertas
             $alertas = AlertasHistorial::find()
                 ->where(['id_dispositivo' => $idDisp])
                 ->orderBy(['fecha_hora' => SORT_DESC])
                 ->limit(5)
                 ->all();
 
-            // Últimas 20 lecturas para la gráfica
+            // Últimas 20 lecturas para gráfica
             $lecturas = LecturasSensores::find()
                 ->where(['id_dispositivo' => $idDisp])
                 ->orderBy(['fecha_hora' => SORT_ASC])
@@ -83,19 +84,41 @@ class DashboardController extends Controller
                 $graficaDatos[] = [
                     'hora'        => date('H:i', strtotime($l->fecha_hora)),
                     'mq135'       => (float) $l->mq135_valor,
-                    'mq5'         => (float) ($l->mq5_valor ?? 0), // ← nuevo
+                    'mq5'         => (float) ($l->mq5_valor ?? 0),
                     'temperatura' => (float) $l->dht22_temperatura,
                     'humedad'     => (float) $l->dht22_humedad,
                 ];
             }
         }
 
+        // Umbrales dinámicos desde BD
+        $umbrales = [
+            'mq135_amarillo' => 3100.0,
+            'mq135_rojo'     => 3500.0,
+            'mq5_fuga'       => 1200.0,
+        ];
+
+        $filas = UmbralesConfiguracion::find()
+            ->where([
+                'parametro' => [
+                    'mq135_amarillo',
+                    'mq135_rojo',
+                    'mq5_fuga'
+                ]
+            ])
+            ->all();
+
+        foreach ($filas as $row) {
+            $umbrales[$row->parametro] = (float) $row->valor_limite;
+        }
+
         return $this->render('index', [
-            'dispositivo'   => $dispositivo,
-            'ultimaLectura' => $ultimaLectura,
-            'estadoActuador'=> $estadoActuador,
-            'alertas'       => $alertas,
-            'graficaDatos'  => $graficaDatos,
+            'dispositivo'    => $dispositivo,
+            'ultimaLectura'  => $ultimaLectura,
+            'estadoActuador' => $estadoActuador,
+            'alertas'        => $alertas,
+            'graficaDatos'   => $graficaDatos,
+            'umbrales'       => $umbrales,
         ]);
     }
 }

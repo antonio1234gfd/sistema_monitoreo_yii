@@ -60,7 +60,8 @@ AppAsset::register($this);
     }
 
     echo Nav::widget([
-        'options' => ['class' => 'navbar-nav me-auto mb-2 mb-md-0'],
+        // ÚNICO CAMBIO AQUÍ: de 'me-auto' a 'ms-auto' para alinear a la derecha
+        'options' => ['class' => 'navbar-nav ms-auto mb-2 mb-md-0'],
         'items' => $menuItems,
     ]);
     
@@ -88,4 +89,4 @@ AppAsset::register($this);
 <?php $this->endBody() ?>
 </body>
 </html>
-<?php $this->endPage();
+<?php $this->endPage(); ?>

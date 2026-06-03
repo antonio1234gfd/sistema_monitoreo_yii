@@ -40,10 +40,26 @@ class LecturasSensoresController extends Controller
     {
         $searchModel = new LecturasSensoresSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
+        $dataProvider->sort->defaultOrder = ['fecha_hora' => SORT_DESC];
+
+        $umbrales = [
+            'mq135_amarillo' => 3100,
+            'mq135_rojo'     => 3500,
+            'mq5_fuga'       => 1200,
+        ];
+
+        $u = \common\models\UmbralesConfiguracion::find()
+            ->where(['parametro' => ['mq135_amarillo','mq135_rojo','mq5_fuga']])
+            ->all();
+
+        foreach ($u as $row) {
+            $umbrales[$row->parametro] = (float)$row->valor_limite;
+        }
 
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'umbrales'     => $umbrales,
         ]);
     }
 
